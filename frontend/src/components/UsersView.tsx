@@ -79,7 +79,7 @@ export default function UsersView() {
       </header>
 
       {error && <div className="error-banner">⚠ {error}</div>}
-      {cargando && <div className="info-banner">Buscando...</div>}
+      {cargando && <div className="info-banner">Cargando...</div>}
 
       <table className="data-table">
         <thead>
