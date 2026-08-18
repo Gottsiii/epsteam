@@ -17,14 +17,27 @@ import {
   GuardarUsuarioInput,
 } from "./types";
 
-export const listarUsuarios = (filtro: string, columna: string, modo: string) =>
-  Backend.ListarUsuarios(filtro, columna, modo) as unknown as Promise<User[]>;
+const ensureArrayResponse = <T>(value: unknown, metodo: string): T[] => {
+  if (value == null) {
+    throw new Error(`${metodo}: respuesta vacía del backend`);
+  }
+  if (!Array.isArray(value)) {
+    if (typeof value === "object" && value && "error" in value) {
+      throw new Error(String((value as { error: unknown }).error));
+    }
+    throw new Error(`${metodo}: formato de respuesta inválido`);
+  }
+  return value as T[];
+};
 
-export const listarUsuariosBaja = () =>
-  Backend.ListarUsuariosBaja() as unknown as Promise<User[]>;
+export const listarUsuarios = async (filtro: string, columna: string, modo: string): Promise<User[]> =>
+  ensureArrayResponse<User>(await Backend.ListarUsuarios(filtro, columna, modo), "ListarUsuarios");
 
-export const buscarUsuarios = (texto: string) =>
-  Backend.BuscarUsuarios(texto) as unknown as Promise<User[]>;
+export const listarUsuariosBaja = async (): Promise<User[]> =>
+  ensureArrayResponse<User>(await Backend.ListarUsuariosBaja(), "ListarUsuariosBaja");
+
+export const buscarUsuarios = async (texto: string): Promise<User[]> =>
+  ensureArrayResponse<User>(await Backend.BuscarUsuarios(texto), "BuscarUsuarios");
 
 export const crearUsuario = (input: NewUserInput) =>
   Backend.CrearUsuario(models.NewUserInput.createFrom(input)) as unknown as Promise<CreatedUser>;
