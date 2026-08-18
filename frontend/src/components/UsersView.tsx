@@ -11,10 +11,12 @@ export default function UsersView() {
   const [seleccionado, setSeleccionado] = useState<User | null>(null);
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
 
   const cargar = async () => {
     try {
       setError(null);
+      setCargando(true);
       if (verBajas) {
         setUsuarios(await listarUsuariosBaja());
       } else if (busqueda.trim()) {
@@ -23,11 +25,10 @@ export default function UsersView() {
         setUsuarios(await listarUsuarios("", "u.username", "like"));
       }
     } catch (err) {
-      // Antes esto fallaba en silencio y la tabla se quedaba vacía sin
-      // ninguna pista. Ahora el error real (conexión a MySQL, credenciales,
-      // lo que sea) se ve directo en la pantalla.
       setError(String(err));
       setUsuarios([]);
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -63,7 +64,11 @@ export default function UsersView() {
         </div>
       </header>
 
-      {error && <div className="error-banner">⚠ {error}</div>}
+      {error && (
+        <div className="error-banner">
+          <strong>⚠ Error:</strong> {error}
+        </div>
+      )}
 
       <table className="data-table">
         <thead>
@@ -76,21 +81,30 @@ export default function UsersView() {
           </tr>
         </thead>
         <tbody>
-          {usuarios.map((u) => (
-            <tr key={u.id_user} onClick={() => setSeleccionado(u)}>
-              <td>{u.username}</td>
-              <td>{u.name}</td>
-              <td>{u.email}</td>
-              <td>{u.zone}</td>
-              <td>{u.plan}</td>
-            </tr>
-          ))}
-          {usuarios.length === 0 && (
+          {cargando ? (
             <tr>
               <td colSpan={5} className="empty">
-                Sin resultados.
+                Buscando…
               </td>
             </tr>
+          ) : usuarios.length === 0 && !error ? (
+            <tr>
+              <td colSpan={5} className="empty">
+                {busqueda.trim()
+                  ? `Sin resultados para "${busqueda}".`
+                  : "No hay usuarios para mostrar."}
+              </td>
+            </tr>
+          ) : (
+            usuarios.map((u) => (
+              <tr key={u.id_user} onClick={() => setSeleccionado(u)}>
+                <td>{u.username}</td>
+                <td>{u.name}</td>
+                <td>{u.email}</td>
+                <td>{u.zone}</td>
+                <td>{u.plan}</td>
+              </tr>
+            ))
           )}
         </tbody>
       </table>
