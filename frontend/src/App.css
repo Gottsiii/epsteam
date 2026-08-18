@@ -240,6 +240,16 @@ button.danger:disabled {
   font-family: "IBM Plex Mono", monospace;
 }
 
+.info-banner {
+  background: rgba(231, 232, 238, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
 /* ---------- Drawer / modal ---------- */
 
 .drawer-overlay {

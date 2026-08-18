@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { User } from "../types";
 import { listarUsuarios, listarUsuariosBaja, buscarUsuarios } from "../api";
 import UserEditDrawer from "./UserEditDrawer";
@@ -11,23 +11,38 @@ export default function UsersView() {
   const [seleccionado, setSeleccionado] = useState<User | null>(null);
   const [mostrarNuevo, setMostrarNuevo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cargando, setCargando] = useState(false);
+  const reqSeq = useRef(0);
+
+  const formatError = (err: unknown) => {
+    if (err instanceof Error) return err.message;
+    return String(err);
+  };
 
   const cargar = async () => {
+    const reqId = ++reqSeq.current;
     try {
+      setCargando(true);
       setError(null);
       if (verBajas) {
-        setUsuarios(await listarUsuariosBaja());
+        const data = await listarUsuariosBaja();
+        if (reqId === reqSeq.current) setUsuarios(data);
       } else if (busqueda.trim()) {
-        setUsuarios(await buscarUsuarios(busqueda));
+        const data = await buscarUsuarios(busqueda);
+        if (reqId === reqSeq.current) setUsuarios(data);
       } else {
-        setUsuarios(await listarUsuarios("", "u.username", "like"));
+        const data = await listarUsuarios("", "u.username", "like");
+        if (reqId === reqSeq.current) setUsuarios(data);
       }
     } catch (err) {
-      // Antes esto fallaba en silencio y la tabla se quedaba vacía sin
-      // ninguna pista. Ahora el error real (conexión a MySQL, credenciales,
-      // lo que sea) se ve directo en la pantalla.
-      setError(String(err));
-      setUsuarios([]);
+      if (reqId === reqSeq.current) {
+        setError(formatError(err));
+        setUsuarios([]);
+      }
+    } finally {
+      if (reqId === reqSeq.current) {
+        setCargando(false);
+      }
     }
   };
 
@@ -64,6 +79,7 @@ export default function UsersView() {
       </header>
 
       {error && <div className="error-banner">⚠ {error}</div>}
+      {cargando && <div className="info-banner">Cargando...</div>}
 
       <table className="data-table">
         <thead>
@@ -85,7 +101,7 @@ export default function UsersView() {
               <td>{u.plan}</td>
             </tr>
           ))}
-          {usuarios.length === 0 && (
+          {!cargando && usuarios.length === 0 && (
             <tr>
               <td colSpan={5} className="empty">
                 Sin resultados.
