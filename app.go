@@ -55,7 +55,7 @@ func (a *App) check() error {
 	if a.loadErr != nil {
 		return a.loadErr
 	}
-	return nil
+	return db.Healthy(a.conn)
 }
 
 // ---- Usuarios ----
