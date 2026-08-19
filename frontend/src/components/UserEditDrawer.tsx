@@ -12,6 +12,8 @@ interface Props {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+type PermisosTab = "todos" | "asignados";
+
 export default function UserEditDrawer({ usuario, onClose, onGuardado }: Props) {
   const [form, setForm] = useState(usuario);
   const [funciones, setFunciones] = useState<FuncionPermiso[]>([]);
@@ -22,6 +24,9 @@ export default function UserEditDrawer({ usuario, onClose, onGuardado }: Props) 
   const [busquedaFuncion, setBusquedaFuncion] = useState("");
   const [mostrarConfirmBaja, setMostrarConfirmBaja] = useState(false);
   const [mostrarConfirmAlta, setMostrarConfirmAlta] = useState(false);
+  const [datosAbierto, setDatosAbierto] = useState(true);
+  const [permisosAbierto, setPermisosAbierto] = useState(true);
+  const [permisosTab, setPermisosTab] = useState<PermisosTab>("todos");
 
   const estaDadoDeBaja = usuario.detalle.includes("BAJA DE USUARIO");
 
@@ -51,6 +56,14 @@ export default function UserEditDrawer({ usuario, onClose, onGuardado }: Props) 
     (acc[f.modulo] ??= []).push(f);
     return acc;
   }, {});
+
+  const gruposAsignados = useMemo(() => {
+    const asignadas = funciones.filter((f) => f.autorizada);
+    return asignadas.reduce<Record<string, FuncionPermiso[]>>((acc, f) => {
+      (acc[f.modulo] ??= []).push(f);
+      return acc;
+    }, {});
+  }, [funciones]);
 
   const handleGenerarPassword = async () => {
     setGenerandoPsw(true);
@@ -116,85 +129,154 @@ export default function UserEditDrawer({ usuario, onClose, onGuardado }: Props) 
         <div className="drawer-body">
           {error && <div className="error-banner">⚠ {error}</div>}
 
-          <div className="field-grid">
-            <label>
-              Usuario
-              <input value={form.username} disabled title="El username no se edita después del alta" />
-            </label>
-            <label>
-              Email
-              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            </label>
-            <label>
-              Nombre
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-            </label>
-            <label>
-              Zona
-              <input value={form.zone} onChange={(e) => setForm({ ...form, zone: e.target.value })} />
-            </label>
-            <label>
-              Plan
-              <select
-                value={form.id_plan}
-                onChange={(e) => setForm({ ...form, id_plan: Number(e.target.value) })}
-              >
-                {planes.map((p) => (
-                  <option key={p.id_plan} value={p.id_plan}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="full">
-              Detalle
-              <input value={form.detalle} onChange={(e) => setForm({ ...form, detalle: e.target.value })} />
-            </label>
-            <label className="full">
-              Contraseña
-              <div className="password-row">
-                <code>{form.psw}</code>
-                <button onClick={handleGenerarPassword} disabled={generandoPsw}>
-                  {generandoPsw ? "generando..." : "generar nueva contraseña"}
+          {/* ── Sección 1: Datos del Usuario ── */}
+          <button className="section-toggle" aria-expanded={datosAbierto} onClick={() => setDatosAbierto((v) => !v)}>
+            <span className="section-toggle-icon">{datosAbierto ? "▼" : "▶"}</span>
+            Datos del Usuario
+          </button>
+          {datosAbierto && (
+            <div className="field-grid">
+              <label>
+                Usuario
+                <input value={form.username} disabled title="El username no se edita después del alta" />
+              </label>
+              <label>
+                Email
+                <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              </label>
+              <label>
+                Nombre
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </label>
+              <label>
+                Zona
+                <input value={form.zone} onChange={(e) => setForm({ ...form, zone: e.target.value })} />
+              </label>
+              <label>
+                Plan
+                <select
+                  value={form.id_plan}
+                  onChange={(e) => setForm({ ...form, id_plan: Number(e.target.value) })}
+                >
+                  {planes.map((p) => (
+                    <option key={p.id_plan} value={p.id_plan}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="full">
+                Detalle
+                <input value={form.detalle} onChange={(e) => setForm({ ...form, detalle: e.target.value })} />
+              </label>
+              <label className="full">
+                Contraseña
+                <div className="password-row">
+                  <code>{form.psw}</code>
+                  <button onClick={handleGenerarPassword} disabled={generandoPsw}>
+                    {generandoPsw ? "generando..." : "generar nueva contraseña"}
+                  </button>
+                </div>
+              </label>
+            </div>
+          )}
+
+          {/* ── Sección 2: Permisos de la API ── */}
+          <button className="section-toggle" aria-expanded={permisosAbierto} onClick={() => setPermisosAbierto((v) => !v)}>
+            <span className="section-toggle-icon">{permisosAbierto ? "▼" : "▶"}</span>
+            Permisos de la API
+          </button>
+          {permisosAbierto && (
+            <>
+              {/* Pestañas */}
+              <div className="permisos-tabs">
+                <button
+                  className={`tab-btn ${permisosTab === "todos" ? "active" : ""}`}
+                  onClick={() => setPermisosTab("todos")}
+                >
+                  Todos
+                </button>
+                <button
+                  className={`tab-btn ${permisosTab === "asignados" ? "active" : ""}`}
+                  onClick={() => setPermisosTab("asignados")}
+                >
+                  Asignados ({funciones.filter((f) => f.autorizada).length})
                 </button>
               </div>
-            </label>
-          </div>
 
-          <h3>Permisos de la API</h3>
-          <input
-            className="permission-search"
-            placeholder="Buscar módulo o función..."
-            value={busquedaFuncion}
-            onChange={(e) => setBusquedaFuncion(e.target.value)}
-          />
-          <div className="permission-board">
-            {Object.entries(grupos).map(([modulo, items]) => {
-              const todasMarcadas = items.every((f) => f.autorizada);
-              return (
-                <div key={modulo} className="permission-module">
-                  <div className="permission-module-header">
-                    <h4>{modulo}</h4>
-                    <div className="module-bulk-actions">
-                      <button onClick={() => setModuloCompleto(modulo, true)} disabled={todasMarcadas}>
-                        seleccionar todo
-                      </button>
-                      <button onClick={() => setModuloCompleto(modulo, false)} disabled={items.every((f) => !f.autorizada)}>
-                        quitar todo
-                      </button>
-                    </div>
+              {permisosTab === "todos" && (
+                <>
+                  <input
+                    className="permission-search"
+                    placeholder="Buscar módulo o función..."
+                    value={busquedaFuncion}
+                    onChange={(e) => setBusquedaFuncion(e.target.value)}
+                  />
+                  <div className="permission-board">
+                    {Object.entries(grupos).map(([modulo, items]) => {
+                      const todasMarcadas = items.every((f) => f.autorizada);
+                      return (
+                        <div key={modulo} className="permission-module">
+                          <div className="permission-module-header">
+                            <h4>{modulo}</h4>
+                            <div className="module-bulk-actions">
+                              <button onClick={() => setModuloCompleto(modulo, true)} disabled={todasMarcadas}>
+                                seleccionar todo
+                              </button>
+                              <button onClick={() => setModuloCompleto(modulo, false)} disabled={items.every((f) => !f.autorizada)}>
+                                quitar todo
+                              </button>
+                            </div>
+                          </div>
+                          {items.map((f) => (
+                            <label key={f.id_funct} className={`permission-switch ${f.autorizada ? "on" : ""}`}>
+                              <input type="checkbox" checked={f.autorizada} onChange={() => toggleFuncion(f.id_funct)} />
+                              {f.funcion}
+                            </label>
+                          ))}
+                        </div>
+                      );
+                    })}
+                    {Object.keys(grupos).length === 0 && <p className="hint">Sin coincidencias para "{busquedaFuncion}".</p>}
                   </div>
-                  {items.map((f) => (
-                    <label key={f.id_funct} className={`permission-switch ${f.autorizada ? "on" : ""}`}>
-                      <input type="checkbox" checked={f.autorizada} onChange={() => toggleFuncion(f.id_funct)} />
-                      {f.funcion}
-                    </label>
-                  ))}
+                </>
+              )}
+
+              {permisosTab === "asignados" && (
+                <div className="permission-board">
+                  {Object.keys(gruposAsignados).length === 0 ? (
+                    <p className="hint">Este usuario no tiene funciones asignadas.</p>
+                  ) : (
+                    Object.entries(gruposAsignados).map(([modulo, items]) => (
+                      <div key={modulo} className="permission-module">
+                        <div className="permission-module-header">
+                          <h4>{modulo}</h4>
+                          <div className="module-bulk-actions">
+                            <button onClick={() => setModuloCompleto(modulo, false)}>
+                              revocar todo
+                            </button>
+                          </div>
+                        </div>
+                        {items.map((f) => (
+                          <div key={f.id_funct} className="permission-switch on assigned-item">
+                            <span className="assigned-check">✓</span>
+                            {f.funcion}
+                            <button
+                              className="revoke-btn"
+                              onClick={() => toggleFuncion(f.id_funct)}
+                              title="Revocar permiso"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ))
+                  )}
                 </div>
-              );
-            })}
-            {Object.keys(grupos).length === 0 && <p className="hint">Sin coincidencias para "{busquedaFuncion}".</p>}
-          </div>
+              )}
+            </>
+          )}
         </div>
 
         <footer>

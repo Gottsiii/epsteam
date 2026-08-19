@@ -486,6 +486,102 @@ button.danger:disabled {
   gap: 10px;
 }
 
+/* ---------- Collapsible section headers ---------- */
+
+.section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  margin: 16px 0 10px;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.section-toggle:hover {
+  border-color: var(--accent);
+}
+
+.section-toggle-icon {
+  font-size: 10px;
+  color: var(--accent);
+  width: 12px;
+  flex-shrink: 0;
+}
+
+/* ---------- Permisos tabs ---------- */
+
+.permisos-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  border-radius: 0;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---------- Assigned items (read-only row with revoke) ---------- */
+
+.assigned-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: default;
+}
+
+.assigned-check {
+  color: var(--success);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.revoke-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.revoke-btn:hover {
+  color: var(--danger);
+}
+
 .footer-nav,
 .footer-actions {
   display: flex;
