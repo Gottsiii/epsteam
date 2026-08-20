@@ -142,7 +142,7 @@ func CreateUser(conn *sql.DB, input models.NewUserInput) (models.CreatedUser, er
 	var idFunctDefault int
 	err = tx.QueryRow(`
 		SELECT f.idFunct FROM funct f JOIN modulo m ON f.idModulo = m.idModulo
-		WHERE m.name = 'user' AND f.name = 'profile' LIMIT 1`).Scan(&idFunctDefault)
+		WHERE m.name = 'user' AND f.name = 'profile' AND m.activo = 1 AND f.activo = 1 LIMIT 1`).Scan(&idFunctDefault)
 	switch {
 	case err == sql.ErrNoRows:
 		// El módulo/función base todavía no existe en el catálogo — se crea
