@@ -14,9 +14,9 @@ import ConfirmActionModal from "./ConfirmActionModal";
 
 type AccionModal =
   | { tipo: "renombrarModulo"; idModulo: number; nombreActual: string }
-  | { tipo: "eliminarModulo"; idModulo: number; nombre: string }
+  | { tipo: "desactivarModulo"; idModulo: number; nombre: string; funcionesActivas?: number }
   | { tipo: "renombrarFuncion"; idFunct: number; idModulo: number; nombreActual: string }
-  | { tipo: "eliminarFuncion"; idFunct: number; nombre: string }
+  | { tipo: "desactivarFuncion"; idFunct: number; nombre: string }
   | { tipo: "moverFuncion"; idFunct: number; idModuloDestino: number; nombreFuncion: string; nombreModuloDestino: string };
 
 export default function CatalogoView() {
@@ -57,52 +57,82 @@ export default function CatalogoView() {
 
   const handleCrearModulo = async () => {
     if (!nuevoModulo.trim()) return;
-    await crearModulo(nuevoModulo.trim());
-    setNuevoModulo("");
-    cargar();
+    try {
+      await crearModulo(nuevoModulo.trim());
+      setNuevoModulo("");
+      cargar();
+    } catch (err) {
+      setError(String(err));
+    }
   };
 
   const handleCrearFuncion = async () => {
     if (!nuevaFuncion.trim() || moduloSeleccionado == null) return;
-    await crearFuncion(moduloSeleccionado, nuevaFuncion.trim());
-    setNuevaFuncion("");
-    cargar();
+    try {
+      await crearFuncion(moduloSeleccionado, nuevaFuncion.trim());
+      setNuevaFuncion("");
+      cargar();
+    } catch (err) {
+      setError(String(err));
+    }
   };
 
   const cerrarModal = () => setAccion(null);
 
   const ejecutarAccion = async (valor?: string) => {
     if (!accion) return;
-    switch (accion.tipo) {
-      case "renombrarModulo":
-        if (valor) await modificarModulo(accion.idModulo, valor);
-        break;
-      case "eliminarModulo":
-        await eliminarModulo(accion.idModulo);
-        if (moduloSeleccionado === accion.idModulo) {
-          setModuloSeleccionado(null);
+    try {
+      switch (accion.tipo) {
+        case "renombrarModulo":
+          if (valor) await modificarModulo(accion.idModulo, valor);
+          break;
+        case "desactivarModulo":
+          await eliminarModulo(accion.idModulo);
+          if (moduloSeleccionado === accion.idModulo) {
+            setModuloSeleccionado(null);
+            setFuncionSeleccionada(null);
+          }
+          break;
+        case "renombrarFuncion":
+          if (valor) await modificarFuncion(accion.idFunct, accion.idModulo, valor);
+          break;
+        case "desactivarFuncion":
+          await eliminarFuncion(accion.idFunct);
           setFuncionSeleccionada(null);
+          break;
+        case "moverFuncion": {
+          const funcionActual = estructura.find((f) => f.id_funct === accion.idFunct);
+          if (funcionActual?.funcion) {
+            await modificarFuncion(accion.idFunct, accion.idModuloDestino, funcionActual.funcion);
+          }
+          setFuncionSeleccionada(null);
+          setDestinoMover("");
+          break;
         }
-        break;
-      case "renombrarFuncion":
-        if (valor) await modificarFuncion(accion.idFunct, accion.idModulo, valor);
-        break;
-      case "eliminarFuncion":
-        await eliminarFuncion(accion.idFunct);
-        setFuncionSeleccionada(null);
-        break;
-      case "moverFuncion": {
-        const funcionActual = estructura.find((f) => f.id_funct === accion.idFunct);
-        if (funcionActual?.funcion) {
-          await modificarFuncion(accion.idFunct, accion.idModuloDestino, funcionActual.funcion);
-        }
-        setFuncionSeleccionada(null);
-        setDestinoMover("");
-        break;
       }
+      setAccion(null);
+      cargar();
+    } catch (err) {
+      setError(String(err));
+      setAccion(null);
     }
-    setAccion(null);
-    cargar();
+  };
+
+  const handleDesactivarModulo = () => {
+    if (!moduloActual) return;
+    const funcionesActivas = funcionesDelModulo.length;
+    
+    if (funcionesActivas > 0) {
+      setError(`No se puede desactivar: este módulo tiene ${funcionesActivas} función(es) activa(s). Desactívalas primero.`);
+      return;
+    }
+
+    setAccion({
+      tipo: "desactivarModulo",
+      idModulo: moduloActual.id_modulo,
+      nombre: moduloActual.name,
+      funcionesActivas: funcionesActivas,
+    });
   };
 
   return (
@@ -125,6 +155,7 @@ export default function CatalogoView() {
                 onClick={() => {
                   setModuloSeleccionado(m.id_modulo);
                   setFuncionSeleccionada(null);
+                  setError(null);
                 }}
               >
                 <span className="bracket-id">{m.id_modulo}</span> — {m.name}
@@ -159,9 +190,9 @@ export default function CatalogoView() {
                 </button>
                 <button
                   className="danger"
-                  onClick={() => setAccion({ tipo: "eliminarModulo", idModulo: moduloActual.id_modulo, nombre: moduloActual.name })}
+                  onClick={handleDesactivarModulo}
                 >
-                  Eliminar módulo
+                  Desactivar módulo
                 </button>
               </div>
 
@@ -257,10 +288,10 @@ export default function CatalogoView() {
                 <button
                   className="danger"
                   onClick={() =>
-                    setAccion({ tipo: "eliminarFuncion", idFunct: funcionSeleccionada.id_funct!, nombre: funcionSeleccionada.funcion! })
+                    setAccion({ tipo: "desactivarFuncion", idFunct: funcionSeleccionada.id_funct!, nombre: funcionSeleccionada.funcion! })
                   }
                 >
-                  Eliminar función
+                  Desactivar función
                 </button>
               </div>
             </div>
@@ -279,11 +310,11 @@ export default function CatalogoView() {
           onConfirmar={ejecutarAccion}
         />
       )}
-      {accion?.tipo === "eliminarModulo" && (
+      {accion?.tipo === "desactivarModulo" && (
         <ConfirmActionModal
-          titulo="Eliminar módulo"
-          mensaje={`¿Eliminar "${accion.nombre}"? Sus funciones quedarán huérfanas (sin módulo).`}
-          confirmarLabel="Eliminar"
+          titulo="Desactivar módulo"
+          mensaje={`¿Desactivar "${accion.nombre}"? Se ocultará del sistema pero se preservarán todos los registros históricos.`}
+          confirmarLabel="Desactivar"
           peligro
           onCancelar={cerrarModal}
           onConfirmar={ejecutarAccion}
@@ -300,11 +331,11 @@ export default function CatalogoView() {
           onConfirmar={ejecutarAccion}
         />
       )}
-      {accion?.tipo === "eliminarFuncion" && (
+      {accion?.tipo === "desactivarFuncion" && (
         <ConfirmActionModal
-          titulo="Eliminar función"
-          mensaje={`¿Eliminar "${accion.nombre}"? Se perderán los permisos de usuarios asociados a esta función.`}
-          confirmarLabel="Eliminar"
+          titulo="Desactivar función"
+          mensaje={`¿Desactivar "${accion.nombre}"? Se ocultará del sistema pero se preservarán todos los registros de uso en la tabla 'record'.`}
+          confirmarLabel="Desactivar"
           peligro
           onCancelar={cerrarModal}
           onConfirmar={ejecutarAccion}

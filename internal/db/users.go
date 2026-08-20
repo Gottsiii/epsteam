@@ -121,7 +121,7 @@ func CreateUser(conn *sql.DB, input models.NewUserInput) (models.CreatedUser, er
 	defer tx.Rollback()
 
 	var idPlan int
-	if err := tx.QueryRow(`SELECT idPlan FROM plan ORDER BY requests ASC LIMIT 1`).Scan(&idPlan); err != nil {
+	if err := tx.QueryRow(`SELECT idPlan FROM plan WHERE name = 'PRD Sesion 1%' LIMIT 1`).Scan(&idPlan); err != nil {
 		return models.CreatedUser{}, fmt.Errorf("no se encontró un plan disponible: %w", err)
 	}
 

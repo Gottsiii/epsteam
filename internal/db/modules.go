@@ -2,12 +2,13 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 
 	"epsteam/internal/models"
 )
 
 func ListModulos(conn *sql.DB) ([]models.Modulo, error) {
-	rows, err := conn.Query(`SELECT idModulo, name FROM modulo ORDER BY name`)
+	rows, err := conn.Query(`SELECT idModulo, name FROM modulo WHERE activo = 1 ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +29,7 @@ func ListEstructuraModuloFunciones(conn *sql.DB) ([]models.ModuloFuncion, error)
 	rows, err := conn.Query(`
 		SELECT m.idModulo, m.name AS Modulo, f.idFunct, f.name AS Funcion
 		FROM modulo m
-		LEFT JOIN funct f ON m.idModulo = f.idModulo
+		LEFT JOIN funct f ON m.idModulo = f.idModulo AND f.activo = 1
 		ORDER BY m.name, f.name`)
 	if err != nil {
 		return nil, err
@@ -54,16 +55,25 @@ func ListEstructuraModuloFunciones(conn *sql.DB) ([]models.ModuloFuncion, error)
 }
 
 func CreateModulo(conn *sql.DB, nombre string) error {
-	_, err := conn.Exec(`INSERT INTO modulo (name) VALUES (?)`, nombre)
+	_, err := conn.Exec(`INSERT INTO modulo (name, activo) VALUES (?, 1)`, nombre)
 	return err
 }
 
 func UpdateModulo(conn *sql.DB, idModulo int, nombre string) error {
-	_, err := conn.Exec(`UPDATE modulo SET name = ? WHERE idModulo = ?`, nombre, idModulo)
+	_, err := conn.Exec(`UPDATE modulo SET name = ? WHERE idModulo = ? AND activo = 1`, nombre, idModulo)
 	return err
 }
 
 func DeleteModulo(conn *sql.DB, idModulo int) error {
-	_, err := conn.Exec(`DELETE FROM modulo WHERE idModulo = ?`, idModulo)
+	var count int
+	err := conn.QueryRow(`SELECT COUNT (*) FROM funct WHERE idModulo = ? AND activo = 1`, idModulo).Scan(&count)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return fmt.Errorf("No se puede desactivar este módulo: tiene %d función(es) activa(s)", count)
+	}
+
+	_, err = conn.Exec(`UPDATE modulo SET activo = 0 WHERE idModulo = ?`, idModulo)
 	return err
 }

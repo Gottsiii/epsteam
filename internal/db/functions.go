@@ -16,6 +16,7 @@ func ListFuncionesPorUsuario(conn *sql.DB, idUser int) ([]models.FuncionPermiso,
 		FROM funct f
 		JOIN modulo m ON f.idModulo = m.idModulo
 		LEFT JOIN accessapi a ON f.idFunct = a.idFunct AND a.idUser = ?
+		WHERE f.activo = 1 AND m.activo = 1
 		ORDER BY m.name, f.name`, idUser)
 	if err != nil {
 		return nil, err
@@ -36,16 +37,16 @@ func ListFuncionesPorUsuario(conn *sql.DB, idUser int) ([]models.FuncionPermiso,
 }
 
 func CreateFuncion(conn *sql.DB, idModulo int, nombre string) error {
-	_, err := conn.Exec(`INSERT INTO funct (idModulo, name) VALUES (?, ?)`, idModulo, nombre)
+	_, err := conn.Exec(`INSERT INTO funct (idModulo, name, activo) VALUES (?, ?, 1)`, idModulo, nombre)
 	return err
 }
 
 func UpdateFuncion(conn *sql.DB, idFunct, idModulo int, nombre string) error {
-	_, err := conn.Exec(`UPDATE funct SET idModulo = ?, name = ? WHERE idFunct = ?`, idModulo, nombre, idFunct)
+	_, err := conn.Exec(`UPDATE funct SET idModulo = ?, name = ? WHERE idFunct = ? AND activo = 1`, idModulo, nombre, idFunct)
 	return err
 }
 
 func DeleteFuncion(conn *sql.DB, idFunct int) error {
-	_, err := conn.Exec(`DELETE FROM funct WHERE idFunct = ?`, idFunct)
+	_, err := conn.Exec(`UPDATE funct SET activo = 0 WHERE  idFunct = ?`, idFunct)
 	return err
 }
