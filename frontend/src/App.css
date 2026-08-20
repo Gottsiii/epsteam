@@ -769,6 +769,11 @@ button.danger:disabled {
   color: var(--danger);
 }
 
+.bracket-warning {
+  margin: -4px 0 14px;
+  color: var(--danger);
+}
+
 .function-editor {
   display: flex;
   flex-direction: column;

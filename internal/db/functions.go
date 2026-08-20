@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 
 	"epsteam/internal/models"
 )
@@ -16,6 +17,7 @@ func ListFuncionesPorUsuario(conn *sql.DB, idUser int) ([]models.FuncionPermiso,
 		FROM funct f
 		JOIN modulo m ON f.idModulo = m.idModulo
 		LEFT JOIN accessapi a ON f.idFunct = a.idFunct AND a.idUser = ?
+		WHERE m.activo = 1 AND f.activo = 1
 		ORDER BY m.name, f.name`, idUser)
 	if err != nil {
 		return nil, err
@@ -46,6 +48,18 @@ func UpdateFuncion(conn *sql.DB, idFunct, idModulo int, nombre string) error {
 }
 
 func DeleteFuncion(conn *sql.DB, idFunct int) error {
-	_, err := conn.Exec(`DELETE FROM funct WHERE idFunct = ?`, idFunct)
-	return err
+	res, err := conn.Exec(`UPDATE funct SET activo = 0 WHERE idFunct = ? AND activo = 1`, idFunct)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return fmt.Errorf("la función no existe o ya está desactivada")
+	}
+
+	return nil
 }
