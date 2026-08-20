@@ -179,7 +179,6 @@ export default function CatalogoView() {
                 <button
                   className="danger"
                   disabled={bloqueoDesactivarModulo != null}
-                  title={bloqueoDesactivarModulo ?? "Desactivar módulo"}
                   onClick={() => setAccion({ tipo: "eliminarModulo", idModulo: moduloActual.id_modulo, nombre: moduloActual.name })}
                 >
                   Desactivar módulo
