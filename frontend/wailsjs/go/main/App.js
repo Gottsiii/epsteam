@@ -46,6 +46,14 @@ export function ListarEstructuraModulos() {
   return window['go']['main']['App']['ListarEstructuraModulos']();
 }
 
+export function ListarEstadisticasFunciones() {
+  return window['go']['main']['App']['ListarEstadisticasFunciones']();
+}
+
+export function ListarRegistrosFuncion(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['ListarRegistrosFuncion'](arg1, arg2, arg3, arg4);
+}
+
 export function ListarFuncionesPorUsuario(arg1) {
   return window['go']['main']['App']['ListarFuncionesPorUsuario'](arg1);
 }

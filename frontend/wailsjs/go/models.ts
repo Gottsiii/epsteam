@@ -167,6 +167,72 @@ export namespace models {
 	        this.name = source["name"];
 	    }
 	}
+	export class RecordStat {
+	    modulo: string;
+	    funcion: string;
+	    total: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecordStat(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.modulo = source["modulo"];
+	        this.funcion = source["funcion"];
+	        this.total = source["total"];
+	    }
+	}
+	export class RecordRow {
+	    id_record: number;
+	    id_user: number;
+	    status: string;
+	    date: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecordRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_record = source["id_record"];
+	        this.id_user = source["id_user"];
+	        this.status = source["status"];
+	        this.date = source["date"];
+	    }
+	}
+	export class RecordPage {
+	    rows: RecordRow[];
+	    total: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new RecordPage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.rows = this.convertValues(source["rows"], RecordRow);
+	        this.total = source["total"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class User {
 	    id_user: number;
 	    username: string;
