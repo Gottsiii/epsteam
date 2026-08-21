@@ -238,5 +238,11 @@ func (a *App) ListarRegistrosFuncion(modulo, funcion string, pagina, porPagina i
 	if err := a.check(); err != nil {
 		return models.RecordPage{}, err
 	}
+	if pagina < 1 {
+		pagina = 1
+	}
+	if porPagina < 1 {
+		porPagina = 50
+	}
 	return db.ListRegistrosFuncion(a.conn, modulo, funcion, pagina, porPagina)
 }

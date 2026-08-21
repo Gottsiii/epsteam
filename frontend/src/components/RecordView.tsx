@@ -194,7 +194,7 @@ export default function RecordView() {
                   </table>
                 </div>
 
-                {totalPaginas > 1 && (
+            {totalPaginas > 1 && !busquedaModal && (
                   <div className="record-pagination">
                     <button
                       disabled={pagina <= 1}
@@ -213,6 +213,11 @@ export default function RecordView() {
                     </button>
                   </div>
                 )}
+            {busquedaModal && (
+              <div className="record-pagination">
+                <span>Mostrando {filasFiltradas.length} de {filas.length} registros en esta página</span>
+              </div>
+            )}
               </>
             )}
           </div>
