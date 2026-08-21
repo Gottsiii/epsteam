@@ -15,6 +15,8 @@ import {
   Modulo,
   ModuloFuncion,
   GuardarUsuarioInput,
+  RecordStat,
+  RecordRow,
 } from "./types";
 
 const ensureArrayResponse = <T>(value: unknown, metodo: string): T[] => {
@@ -82,3 +84,9 @@ export const modificarFuncion = (idFunct: number, idModulo: number, nombre: stri
 
 export const eliminarFuncion = (idFunct: number) =>
   Backend.EliminarFuncion(idFunct) as unknown as Promise<void>;
+
+export const listarEstadisticasFunciones = () =>
+  Backend.ListarEstadisticasFunciones() as unknown as Promise<RecordStat[]>;
+
+export const listarRegistrosFuncion = (modulo: string, funcion: string, pagina: number, porPagina: number) =>
+  Backend.ListarRegistrosFuncion(modulo, funcion, pagina, porPagina) as unknown as Promise<{ rows: RecordRow[]; total: number }>;

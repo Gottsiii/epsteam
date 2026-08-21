@@ -25,6 +25,10 @@ export function GuardarUsuario(arg1:main.GuardarUsuarioInput):Promise<void>;
 
 export function ListarEstructuraModulos():Promise<Array<models.ModuloFuncion>>;
 
+export function ListarEstadisticasFunciones():Promise<Array<models.RecordStat>>;
+
+export function ListarRegistrosFuncion(arg1:string,arg2:string,arg3:number,arg4:number):Promise<models.RecordPage>;
+
 export function ListarFuncionesPorUsuario(arg1:number):Promise<Array<models.FuncionPermiso>>;
 
 export function ListarModulos():Promise<Array<models.Modulo>>;
