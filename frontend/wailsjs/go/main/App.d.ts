@@ -23,6 +23,8 @@ export function GenerarPassword():Promise<string>;
 
 export function GuardarUsuario(arg1:main.GuardarUsuarioInput):Promise<void>;
 
+export function ListarEstadisticasFunciones():Promise<Array<models.RecordStat>>;
+
 export function ListarEstructuraModulos():Promise<Array<models.ModuloFuncion>>;
 
 export function ListarFuncionesPorUsuario(arg1:number):Promise<Array<models.FuncionPermiso>>;
@@ -30,6 +32,8 @@ export function ListarFuncionesPorUsuario(arg1:number):Promise<Array<models.Func
 export function ListarModulos():Promise<Array<models.Modulo>>;
 
 export function ListarPlanes():Promise<Array<models.Plan>>;
+
+export function ListarRegistrosFuncion(arg1:string,arg2:string,arg3:number,arg4:number):Promise<models.RecordPage>;
 
 export function ListarUsuarios(arg1:string,arg2:string,arg3:string):Promise<Array<models.User>>;
 

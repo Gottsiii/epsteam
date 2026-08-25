@@ -73,3 +73,26 @@ type PermisoInput struct {
 	IDFunct    int  `json:"id_funct"`
 	Autorizada bool `json:"autorizada"`
 }
+
+// RecordStat es el resultado del dashboard: cuántas veces se ejecutó cada
+// función en los últimos 30 días.
+type RecordStat struct {
+	Modulo  string `json:"modulo"`
+	Funcion string `json:"funcion"`
+	Total   int    `json:"total"`
+}
+
+// RecordRow es una fila de la tabla record para la vista de detalle de una
+// función.
+type RecordRow struct {
+	IDRecord int    `json:"id_record"`
+	IDUser   int    `json:"id_user"`
+	Status   string `json:"status"`
+	Date     string `json:"date"`
+}
+
+// RecordPage agrupa los resultados paginados de ListRegistrosFuncion.
+type RecordPage struct {
+	Rows  []RecordRow `json:"rows"`
+	Total int         `json:"total"`
+}

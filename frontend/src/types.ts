@@ -60,3 +60,16 @@ export interface GuardarUsuarioInput {
   detalle: string;
   permisos: { id_funct: number; autorizada: boolean }[];
 }
+
+export interface RecordStat {
+  modulo: string;
+  funcion: string;
+  total: number;
+}
+
+export interface RecordRow {
+  id_record: number;
+  id_user: number;
+  status: string;
+  date: string;
+}

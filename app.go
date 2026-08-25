@@ -224,3 +224,23 @@ func (a *App) EliminarFuncion(idFunct int) error {
 	}
 	return db.DeleteFuncion(a.conn, idFunct)
 }
+
+func (a *App) ListarEstadisticasFunciones() ([]models.RecordStat, error) {
+	if err := a.check(); err != nil {
+		return nil, err
+	}
+	return db.ListEstadisticasFunciones(a.conn)
+}
+
+func (a *App) ListarRegistrosFuncion(modulo, funcion string, pagina, porPagina int) (models.RecordPage, error) {
+	if err := a.check(); err != nil {
+		return models.RecordPage{}, err
+	}
+	if pagina < 1 {
+		pagina = 1
+	}
+	if porPagina < 1 {
+		porPagina = 50
+	}
+	return db.ListRegistrosFuncion(a.conn, modulo, funcion, pagina, porPagina)
+}
