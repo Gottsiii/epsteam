@@ -25,6 +25,8 @@ export function GuardarUsuario(arg1:main.GuardarUsuarioInput):Promise<void>;
 
 export function ListarEstadisticasFunciones():Promise<Array<models.RecordStat>>;
 
+export function ListarEstadisticasUsuarios():Promise<Array<models.UserStat>>;
+
 export function ListarEstructuraModulos():Promise<Array<models.ModuloFuncion>>;
 
 export function ListarFuncionesPorUsuario(arg1:number):Promise<Array<models.FuncionPermiso>>;
@@ -34,6 +36,10 @@ export function ListarModulos():Promise<Array<models.Modulo>>;
 export function ListarPlanes():Promise<Array<models.Plan>>;
 
 export function ListarRegistrosFuncion(arg1:string,arg2:string,arg3:number,arg4:number):Promise<models.RecordPage>;
+
+export function ListarRegistrosPorUsuarioYFuncion(arg1:number,arg2:number,arg3:number,arg4:number):Promise<models.RecordPage>;
+
+export function ListarTop15FuncionesPorUsuario(arg1:number):Promise<Array<models.FunctionUsageByUser>>;
 
 export function ListarUsuarios(arg1:string,arg2:string,arg3:string):Promise<Array<models.User>>;
 

@@ -17,6 +17,8 @@ import {
   GuardarUsuarioInput,
   RecordStat,
   RecordRow,
+  UserStat,
+  FunctionUsageByUser,
 } from "./types";
 
 const ensureArrayResponse = <T>(value: unknown, metodo: string): T[] => {
@@ -90,3 +92,12 @@ export const listarEstadisticasFunciones = () =>
 
 export const listarRegistrosFuncion = (modulo: string, funcion: string, pagina: number, porPagina: number) =>
   Backend.ListarRegistrosFuncion(modulo, funcion, pagina, porPagina) as unknown as Promise<{ rows: RecordRow[]; total: number }>;
+
+export const listarEstadisticasUsuarios = () =>
+  Backend.ListarEstadisticasUsuarios() as unknown as Promise<UserStat[]>;
+
+export const listarTop15FuncionesPorUsuario = (idUser: number) =>
+  Backend.ListarTop15FuncionesPorUsuario(idUser) as unknown as Promise<FunctionUsageByUser[]>;
+
+export const listarRegistrosPorUsuarioYFuncion = (idUser: number, idFunct: number, pagina: number, porPagina: number) =>
+  Backend.ListarRegistrosPorUsuarioYFuncion(idUser, idFunct, pagina, porPagina) as unknown as Promise<{ rows: RecordRow[]; total: number }>;

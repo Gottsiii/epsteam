@@ -82,6 +82,22 @@ type RecordStat struct {
 	Total   int    `json:"total"`
 }
 
+// UserStat resume interacciones del mes actual por usuario.
+type UserStat struct {
+	IDUser             int    `json:"id_user"`
+	Username           string `json:"username"`
+	TotalInteracciones int    `json:"total_interacciones"`
+	LastUpdate         string `json:"last_update"`
+}
+
+// FunctionUsageByUser representa uso de funciones por usuario en el mes actual.
+type FunctionUsageByUser struct {
+	IDFunct int    `json:"id_funct"`
+	Modulo  string `json:"modulo"`
+	Funcion string `json:"funcion"`
+	Usos    int    `json:"usos"`
+}
+
 // RecordRow es una fila de la tabla record para la vista de detalle de una
 // función.
 type RecordRow struct {

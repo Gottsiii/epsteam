@@ -46,6 +46,10 @@ export function ListarEstadisticasFunciones() {
   return window['go']['main']['App']['ListarEstadisticasFunciones']();
 }
 
+export function ListarEstadisticasUsuarios() {
+  return window['go']['main']['App']['ListarEstadisticasUsuarios']();
+}
+
 export function ListarEstructuraModulos() {
   return window['go']['main']['App']['ListarEstructuraModulos']();
 }
@@ -64,6 +68,14 @@ export function ListarPlanes() {
 
 export function ListarRegistrosFuncion(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['ListarRegistrosFuncion'](arg1, arg2, arg3, arg4);
+}
+
+export function ListarRegistrosPorUsuarioYFuncion(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['ListarRegistrosPorUsuarioYFuncion'](arg1, arg2, arg3, arg4);
+}
+
+export function ListarTop15FuncionesPorUsuario(arg1) {
+  return window['go']['main']['App']['ListarTop15FuncionesPorUsuario'](arg1);
 }
 
 export function ListarUsuarios(arg1, arg2, arg3) {
