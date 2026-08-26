@@ -1,100 +1,106 @@
 import { useEffect, useMemo, useState } from "react";
-import { RecordStat, RecordRow } from "../types";
-import { listarEstadisticasFunciones, listarRegistrosFuncion } from "../api";
+import { FunctionUsageByUser, RecordRow, UserStat } from "../types";
+import {
+  listarEstadisticasUsuarios,
+  listarRegistrosPorUsuarioYFuncion,
+  listarTop15FuncionesPorUsuario,
+} from "../api";
 
 const POR_PAGINA = 50;
 
 export default function RecordView() {
-  const [stats, setStats] = useState<RecordStat[]>([]);
+  const [usuarios, setUsuarios] = useState<UserStat[]>([]);
+  const [funciones, setFunciones] = useState<FunctionUsageByUser[]>([]);
+  const [registros, setRegistros] = useState<RecordRow[]>([]);
+  const [totalRegistros, setTotalRegistros] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [busqueda, setBusqueda] = useState("");
-
-  // Modal de detalle
-  const [seleccionada, setSeleccionada] = useState<RecordStat | null>(null);
-  const [filas, setFilas] = useState<RecordRow[]>([]);
-  const [totalFilas, setTotalFilas] = useState(0);
+  const [busquedaUsuarios, setBusquedaUsuarios] = useState("");
+  const [busquedaTabla, setBusquedaTabla] = useState("");
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<UserStat | null>(null);
+  const [funcionSeleccionada, setFuncionSeleccionada] = useState<FunctionUsageByUser | null>(null);
   const [pagina, setPagina] = useState(1);
-  const [cargandoModal, setCargandoModal] = useState(false);
-  const [busquedaModal, setBusquedaModal] = useState("");
+  const [cargandoRegistros, setCargandoRegistros] = useState(false);
 
   useEffect(() => {
-    listarEstadisticasFunciones()
-      .then((data) => setStats(data ?? []))
+    listarEstadisticasUsuarios()
+      .then((data) => setUsuarios(data ?? []))
       .catch((err) => setError(String(err)));
   }, []);
 
-  const totalEjecuciones = useMemo(
-    () => stats.reduce((acc, s) => acc + s.total, 0),
-    [stats]
-  );
+  const totalInteracciones = useMemo(() => usuarios.reduce((acc, u) => acc + u.total_interacciones, 0), [usuarios]);
 
-  const statsFiltradas = useMemo(() => {
-    const q = busqueda.toLowerCase();
-    if (!q) return stats;
-    return stats.filter(
-      (s) =>
-        s.modulo.toLowerCase().includes(q) ||
-        s.funcion.toLowerCase().includes(q)
-    );
-  }, [stats, busqueda]);
+  const usuariosFiltrados = useMemo(() => {
+    const q = busquedaUsuarios.trim().toLowerCase();
+    if (!q) return usuarios;
+    return usuarios.filter((u) => String(u.id_user).includes(q) || u.username.toLowerCase().includes(q));
+  }, [usuarios, busquedaUsuarios]);
 
-  const cargarDetalle = async (stat: RecordStat, pag: number) => {
-    setCargandoModal(true);
+  const cargarFuncionesUsuario = async (user: UserStat) => {
+    setUsuarioSeleccionado(user);
+    setFuncionSeleccionada(null);
+    setFunciones([]);
+    setRegistros([]);
+    setTotalRegistros(0);
+    setPagina(1);
+    setBusquedaTabla("");
     try {
-      const { rows, total } = await listarRegistrosFuncion(
-        stat.modulo,
-        stat.funcion,
-        pag,
-        POR_PAGINA
-      );
-      setFilas(rows);
-      setTotalFilas(total);
+      const data = await listarTop15FuncionesPorUsuario(user.id_user);
+      setFunciones(data ?? []);
     } catch (err) {
       setError(String(err));
-    } finally {
-      setCargandoModal(false);
     }
   };
 
-  const abrirModal = (stat: RecordStat) => {
-    setSeleccionada(stat);
-    setPagina(1);
-    setBusquedaModal("");
-    cargarDetalle(stat, 1);
+  const cargarRegistros = async (funcion: FunctionUsageByUser, pag: number) => {
+    if (!usuarioSeleccionado) return;
+    setCargandoRegistros(true);
+    try {
+      const { rows, total } = await listarRegistrosPorUsuarioYFuncion(
+        usuarioSeleccionado.id_user,
+        funcion.id_funct,
+        pag,
+        POR_PAGINA
+      );
+      setRegistros(rows ?? []);
+      setTotalRegistros(total ?? 0);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setCargandoRegistros(false);
+    }
   };
 
-  const cerrarModal = () => {
-    setSeleccionada(null);
-    setFilas([]);
-    setTotalFilas(0);
-    setBusquedaModal("");
+  const seleccionarFuncion = (funcion: FunctionUsageByUser) => {
+    setFuncionSeleccionada(funcion);
+    setPagina(1);
+    cargarRegistros(funcion, 1);
   };
 
   const cambiarPagina = (nueva: number) => {
-    if (!seleccionada) return;
+    if (!funcionSeleccionada) return;
     setPagina(nueva);
-    cargarDetalle(seleccionada, nueva);
+    cargarRegistros(funcionSeleccionada, nueva);
   };
 
-  const filasFiltradas = useMemo(() => {
-    const q = busquedaModal.toLowerCase();
-    if (!q) return filas;
-    return filas.filter(
-      (f) =>
-        String(f.id_user).includes(q) ||
-        f.status.toLowerCase().includes(q) ||
-        f.date.toLowerCase().includes(q)
+  const registrosFiltrados = useMemo(() => {
+    const q = busquedaTabla.trim().toLowerCase();
+    if (!q) return registros;
+    return registros.filter(
+      (r) =>
+        String(r.id_user).includes(q) ||
+        r.status.toLowerCase().includes(q) ||
+        r.date.toLowerCase().includes(q)
     );
-  }, [filas, busquedaModal]);
+  }, [registros, busquedaTabla]);
 
-  const totalPaginas = Math.ceil(totalFilas / POR_PAGINA);
+  const totalPaginas = Math.ceil(totalRegistros / POR_PAGINA);
 
   return (
     <div className="record-view">
       <header className="view-header">
         <h1>Estadísticas de uso</h1>
         <p className="record-global-count">
-          <strong>{totalEjecuciones.toLocaleString()}</strong> ejecuciones en los últimos 30 días
+          <strong>{totalInteracciones.toLocaleString()}</strong> interacciones en el mes actual
         </p>
       </header>
 
@@ -106,121 +112,125 @@ export default function RecordView() {
 
       <div className="record-search-bar">
         <input
-          placeholder="Buscar por módulo o función..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar usuario por ID o username..."
+          value={busquedaUsuarios}
+          onChange={(e) => setBusquedaUsuarios(e.target.value)}
         />
       </div>
 
       <div className="record-slider">
-        {statsFiltradas.length === 0 && (
-          <p className="hint">Sin datos para los últimos 30 días.</p>
+        {usuariosFiltrados.length === 0 && (
+          <p className="hint">Sin datos para el mes actual.</p>
         )}
-        {statsFiltradas.map((s) => (
+        {usuariosFiltrados.map((u) => (
           <button
-            key={`${s.modulo}-${s.funcion}`}
-            className="record-card"
-            onClick={() => abrirModal(s)}
+            key={u.id_user}
+            className={`record-card ${usuarioSeleccionado?.id_user === u.id_user ? "active" : ""}`}
+            onClick={() => cargarFuncionesUsuario(u)}
           >
-            <span className="record-card-modulo">{s.modulo}</span>
-            <span className="record-card-funcion">{s.funcion}</span>
-            <span className="record-card-total">{s.total.toLocaleString()}</span>
+            <span className="record-card-modulo">{u.username}</span>
+            <span className="record-card-funcion">{u.id_user}</span>
+            <span className="record-card-total">{u.total_interacciones.toLocaleString()} interacciones</span>
+            <span className="hint">{u.last_update ? `Última actividad: ${u.last_update}` : "Sin lastUpdate"}</span>
           </button>
         ))}
       </div>
 
-      {seleccionada && (
-        <div className="modal-overlay" onClick={cerrarModal}>
-          <div
-            className="modal-panel record-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-header">
-              <h2>
-                {seleccionada.modulo} — {seleccionada.funcion}
-              </h2>
-              <button className="modal-close" onClick={cerrarModal}>
-                ✕
+      {usuarioSeleccionado && (
+        <>
+          <h2>
+            Top 15 funciones — {usuarioSeleccionado.username} ({usuarioSeleccionado.id_user})
+          </h2>
+          <div className="record-slider">
+            {funciones.length === 0 && <p className="hint">Sin funciones para este usuario en el mes actual.</p>}
+            {funciones.map((f) => (
+              <button
+                key={f.id_funct}
+                className={`record-card ${funcionSeleccionada?.id_funct === f.id_funct ? "active" : ""}`}
+                onClick={() => seleccionarFuncion(f)}
+              >
+                <span className="record-card-modulo">{f.modulo}</span>
+                <span className="record-card-funcion">{f.funcion}</span>
+                <span className="record-card-total">{f.usos.toLocaleString()} usos</span>
               </button>
-            </div>
-
-            <div className="record-modal-search">
-              <input
-                placeholder="Filtrar por usuario, status o fecha..."
-                value={busquedaModal}
-                onChange={(e) => setBusquedaModal(e.target.value)}
-              />
-            </div>
-
-            {cargandoModal ? (
-              <p className="hint">Cargando...</p>
-            ) : (
-              <>
-                <div className="record-table-wrap">
-                  <table className="record-table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Usuario</th>
-                        <th>Status</th>
-                        <th>Fecha</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filasFiltradas.map((f) => (
-                        <tr key={f.id_record}>
-                          <td>{f.id_record}</td>
-                          <td>{f.id_user}</td>
-                          <td>
-                            <span
-                              className={`status-badge ${
-                                f.status === "success" ? "success" : "error"
-                              }`}
-                            >
-                              {f.status}
-                            </span>
-                          </td>
-                          <td>{f.date}</td>
-                        </tr>
-                      ))}
-                      {filasFiltradas.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="hint">
-                            Sin resultados.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-            {totalPaginas > 1 && !busquedaModal && (
-                  <div className="record-pagination">
-                    <button
-                      disabled={pagina <= 1}
-                      onClick={() => cambiarPagina(pagina - 1)}
-                    >
-                      ‹ Anterior
-                    </button>
-                    <span>
-                      Página {pagina} / {totalPaginas} ({totalFilas.toLocaleString()} registros)
-                    </span>
-                    <button
-                      disabled={pagina >= totalPaginas}
-                      onClick={() => cambiarPagina(pagina + 1)}
-                    >
-                      Siguiente ›
-                    </button>
-                  </div>
-                )}
-            {busquedaModal && (
-              <div className="record-pagination">
-                <span>Mostrando {filasFiltradas.length} de {filas.length} registros en esta página</span>
-              </div>
-            )}
-              </>
-            )}
+            ))}
           </div>
+        </>
+      )}
+
+      {funcionSeleccionada && (
+        <div className="record-modal">
+          <h2>
+            Registros — {funcionSeleccionada.modulo} / {funcionSeleccionada.funcion}
+          </h2>
+          <div className="record-modal-search">
+            <input
+              placeholder="Filtrar por usuario, status o fecha..."
+              value={busquedaTabla}
+              onChange={(e) => setBusquedaTabla(e.target.value)}
+            />
+          </div>
+
+          {cargandoRegistros ? (
+            <p className="hint">Cargando...</p>
+          ) : (
+            <>
+              <div className="record-table-wrap">
+                <table className="record-table">
+                  <thead>
+                    <tr>
+                      <th>Usuario</th>
+                      <th>Status</th>
+                      <th>Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {registrosFiltrados.map((r) => (
+                      <tr key={r.id_record}>
+                        <td>{r.id_user}</td>
+                        <td>
+                          <span
+                            className={`status-badge ${r.status === "success" ? "success" : "error"}`}
+                          >
+                            {r.status}
+                          </span>
+                        </td>
+                        <td>{r.date}</td>
+                      </tr>
+                    ))}
+                    {registrosFiltrados.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="hint">
+                          Sin resultados.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {totalPaginas > 1 && !busquedaTabla && (
+                <div className="record-pagination">
+                  <button disabled={pagina <= 1} onClick={() => cambiarPagina(pagina - 1)}>
+                    ‹ Anterior
+                  </button>
+                  <span>
+                    Página {pagina} / {totalPaginas} ({totalRegistros.toLocaleString()} registros)
+                  </span>
+                  <button disabled={pagina >= totalPaginas} onClick={() => cambiarPagina(pagina + 1)}>
+                    Siguiente ›
+                  </button>
+                </div>
+              )}
+              {busquedaTabla && (
+                <div className="record-pagination">
+                  <span>
+                    Mostrando {registrosFiltrados.length} de {registros.length} registros en esta página
+                  </span>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>

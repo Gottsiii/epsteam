@@ -33,6 +33,34 @@ select {
   font-family: inherit;
 }
 
+/* Scrollbar personalizado - tema oscuro */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: content-box;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin;
+}
+
 /* ---------- Shell general ---------- */
 
 .shell {
@@ -929,6 +957,7 @@ button.danger:disabled {
   opacity: 0.4;
   cursor: default;
 }
+
 /* ---- Record / Estadísticas ---- */
 
 .record-view {
@@ -938,6 +967,20 @@ button.danger:disabled {
   padding: 24px;
   height: 100%;
   overflow-y: auto;
+}
+
+.record-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.record-section h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0;
 }
 
 .record-global-count {
@@ -957,7 +1000,7 @@ button.danger:disabled {
   padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--panel-2);
   color: var(--text);
   font-size: 13px;
 }
@@ -967,14 +1010,15 @@ button.danger:disabled {
   gap: 12px;
   overflow-x: auto;
   padding-bottom: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .record-card {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: var(--surface);
+  background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 18px;
@@ -983,14 +1027,27 @@ button.danger:disabled {
   cursor: pointer;
   text-align: left;
   transition: border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
 }
 
 .record-card:hover {
   border-color: var(--accent);
-  background: var(--surface-hover, #222);
+  background: var(--panel);
+}
+
+.record-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
 }
 
 .record-card-modulo {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.record-card-usuario {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1011,18 +1068,63 @@ button.danger:disabled {
   margin-top: 6px;
 }
 
+.record-card-lastupdate {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
 /* Modal de detalle */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.modal-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
 
 .record-modal {
   width: 90vw;
   max-width: 800px;
   max-height: 85vh;
-  display: flex;
-  flex-direction: column;
 }
 
 .record-modal-search {
-  padding: 12px 0;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
 .record-modal-search input {
@@ -1030,7 +1132,7 @@ button.danger:disabled {
   padding: 8px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--panel-2);
   color: var(--text);
   font-size: 13px;
 }
@@ -1038,6 +1140,7 @@ button.danger:disabled {
 .record-table-wrap {
   overflow-y: auto;
   flex: 1;
+  max-height: 400px;
 }
 
 .record-table {
@@ -1054,9 +1157,9 @@ button.danger:disabled {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background: var(--panel-2);
   position: sticky;
   top: 0;
-  background: var(--surface);
 }
 
 .record-table td {
@@ -1065,44 +1168,26 @@ button.danger:disabled {
   color: var(--text);
 }
 
-.record-table tr:last-child td {
-  border-bottom: none;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.status-badge.success {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-}
-
-.status-badge.error {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+.record-table tbody tr:hover td {
+  background: var(--panel-2);
 }
 
 .record-pagination {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding-top: 12px;
-  font-size: 13px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
   color: var(--text-muted);
-  justify-content: center;
 }
 
 .record-pagination button {
   background: none;
   border: 1px solid var(--border);
   color: var(--text-muted);
-  border-radius: 6px;
   padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
 }
@@ -1110,4 +1195,61 @@ button.danger:disabled {
 .record-pagination button:disabled {
   opacity: 0.4;
   cursor: default;
+}
+
+.record-pagination button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.status-badge.success {
+  background: rgba(47, 191, 113, 0.15);
+  color: var(--success);
+}
+
+.status-badge.error {
+  background: rgba(229, 72, 77, 0.15);
+  color: var(--danger);
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: var(--text-muted);
+}
+
+.loading-spinner::after {
+  content: "";
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0;
+  padding: 16px;
+  text-align: center;
 }

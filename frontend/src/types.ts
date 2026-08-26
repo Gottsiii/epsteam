@@ -67,6 +67,20 @@ export interface RecordStat {
   total: number;
 }
 
+export interface UserStat {
+  id_user: number;
+  username: string;
+  total_interacciones: number;
+  last_update: string;
+}
+
+export interface FunctionUsageByUser {
+  id_funct: number;
+  modulo: string;
+  funcion: string;
+  usos: number;
+}
+
 export interface RecordRow {
   id_record: number;
   id_user: number;

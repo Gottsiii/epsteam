@@ -85,6 +85,24 @@ export namespace models {
 	        this.autorizada = source["autorizada"];
 	    }
 	}
+	export class FunctionUsageByUser {
+	    id_funct: number;
+	    modulo: string;
+	    funcion: string;
+	    usos: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new FunctionUsageByUser(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_funct = source["id_funct"];
+	        this.modulo = source["modulo"];
+	        this.funcion = source["funcion"];
+	        this.usos = source["usos"];
+	    }
+	}
 	export class Modulo {
 	    id_modulo: number;
 	    name: string;
@@ -260,6 +278,24 @@ export namespace models {
 	        this.psw = source["psw"];
 	        this.detalle = source["detalle"];
 	        this.id_plan = source["id_plan"];
+	    }
+	}
+	export class UserStat {
+	    id_user: number;
+	    username: string;
+	    total_interacciones: number;
+	    last_update: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UserStat(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_user = source["id_user"];
+	        this.username = source["username"];
+	        this.total_interacciones = source["total_interacciones"];
+	        this.last_update = source["last_update"];
 	    }
 	}
 
