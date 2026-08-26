@@ -73,3 +73,16 @@ export interface RecordRow {
   status: string;
   date: string;
 }
+
+export interface UserStat {
+  id_user: number;
+  total_interacciones: number;
+  last_update: string;
+}
+
+export interface FunctionUsage {
+  id_funct: number;
+  modulo: string;
+  funcion: string;
+  usos: number;
+}

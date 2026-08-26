@@ -96,3 +96,20 @@ type RecordPage struct {
 	Rows  []RecordRow `json:"rows"`
 	Total int         `json:"total"`
 }
+
+// UserStat representa las estadísticas de un usuario en el mes actual:
+// cuántas interacciones tuvo y cuándo fue su última actividad.
+type UserStat struct {
+	IDUser             int    `json:"id_user"`
+	TotalInteracciones int    `json:"total_interacciones"`
+	LastUpdate         string `json:"last_update"`
+}
+
+// FunctionUsage representa una función y cuántas veces la usó un usuario
+// en el mes actual (Top 15).
+type FunctionUsage struct {
+	IDFunct int    `json:"id_funct"`
+	Modulo  string `json:"modulo"`
+	Funcion string `json:"funcion"`
+	Usos    int    `json:"usos"`
+}

@@ -234,6 +234,40 @@ export namespace models {
 	        this.total = source["total"];
 	    }
 	}
+	export class UserStat {
+	    id_user: number;
+	    total_interacciones: number;
+	    last_update: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new UserStat(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_user = source["id_user"];
+	        this.total_interacciones = source["total_interacciones"];
+	        this.last_update = source["last_update"];
+	    }
+	}
+	export class FunctionUsage {
+	    id_funct: number;
+	    modulo: string;
+	    funcion: string;
+	    usos: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new FunctionUsage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_funct = source["id_funct"];
+	        this.modulo = source["modulo"];
+	        this.funcion = source["funcion"];
+	        this.usos = source["usos"];
+	    }
+	}
 	export class User {
 	    id_user: number;
 	    username: string;

@@ -244,3 +244,30 @@ func (a *App) ListarRegistrosFuncion(modulo, funcion string, pagina, porPagina i
 	}
 	return db.ListRegistrosFuncion(a.conn, modulo, funcion, pagina, porPagina)
 }
+
+func (a *App) ListarEstadisticasUsuarios() ([]models.UserStat, error) {
+	if err := a.check(); err != nil {
+		return nil, err
+	}
+	return db.GetUserStatsCurrentMonth(a.conn)
+}
+
+func (a *App) ListarTop15FuncionesPorUsuario(idUser int) ([]models.FunctionUsage, error) {
+	if err := a.check(); err != nil {
+		return nil, err
+	}
+	return db.GetTopFunctionsByUser(a.conn, idUser)
+}
+
+func (a *App) ListarRegistrosPorUsuarioYFuncion(idUser, idFunct, pagina, porPagina int) (models.RecordPage, error) {
+	if err := a.check(); err != nil {
+		return models.RecordPage{}, err
+	}
+	if pagina < 1 {
+		pagina = 1
+	}
+	if porPagina < 1 {
+		porPagina = 50
+	}
+	return db.GetRecordsByUserAndFunction(a.conn, idUser, idFunct, pagina, porPagina)
+}
