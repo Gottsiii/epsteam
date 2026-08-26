@@ -86,11 +86,12 @@ func GetUserStatsCurrentMonth(conn *sql.DB) ([]models.UserStat, error) {
 			r.idUser,
 			u.username,
 			COUNT(r.idMonthRecord) AS total,
-			COALESCE(DATE_FORMAT(u.lastUpdate, '%Y-%m-%d %H:%i:%s'), '') AS lastUpdate
+			COALESCE(DATE_FORMAT(MAX(u.lastUpdate), '%Y-%m-%d %H:%i:%s'), '') AS lastUpdate
 		FROM monthRecord r
 		INNER JOIN users u ON r.idUser = u.idUser
-		WHERE YEAR(r.date) = YEAR(NOW()) AND MONTH(r.date) = MONTH(NOW())
-		GROUP BY r.idUser, u.username, u.lastUpdate
+		WHERE r.date >= DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY)
+		  AND r.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY), INTERVAL 1 MONTH)
+		GROUP BY r.idUser, u.username
 		ORDER BY total DESC`)
 	if err != nil {
 		return nil, err
@@ -119,7 +120,9 @@ func GetTopFunctionsByUser(conn *sql.DB, idUser int) ([]models.FunctionUsageByUs
 		FROM monthRecord r
 		INNER JOIN funct f ON r.idFunct = f.idFunct
 		INNER JOIN modulo m ON f.idModulo = m.idModulo
-		WHERE r.idUser = ? AND YEAR(r.date) = YEAR(NOW()) AND MONTH(r.date) = MONTH(NOW())
+		WHERE r.idUser = ?
+		  AND r.date >= DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY)
+		  AND r.date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY), INTERVAL 1 MONTH)
 		GROUP BY f.idFunct, m.name, f.name
 		ORDER BY usos DESC
 		LIMIT 15`, idUser)
@@ -147,7 +150,9 @@ func GetRecordsByUserAndFunction(conn *sql.DB, idUser, idFunct, pagina, porPagin
 	if err := conn.QueryRow(`
 		SELECT COUNT(idMonthRecord)
 		FROM monthRecord
-		WHERE idUser = ? AND idFunct = ? AND YEAR(date) = YEAR(NOW()) AND MONTH(date) = MONTH(NOW())`,
+		WHERE idUser = ? AND idFunct = ?
+		  AND date >= DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY)
+		  AND date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY), INTERVAL 1 MONTH)`,
 		idUser, idFunct).Scan(&total); err != nil {
 		return models.RecordPage{}, err
 	}
@@ -159,7 +164,9 @@ func GetRecordsByUserAndFunction(conn *sql.DB, idUser, idFunct, pagina, porPagin
 			status,
 			COALESCE(DATE_FORMAT(date, '%Y-%m-%d %H:%i:%s'), '') AS date
 		FROM monthRecord
-		WHERE idUser = ? AND idFunct = ? AND YEAR(date) = YEAR(NOW()) AND MONTH(date) = MONTH(NOW())
+		WHERE idUser = ? AND idFunct = ?
+		  AND date >= DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY)
+		  AND date < DATE_ADD(DATE_SUB(CURDATE(), INTERVAL DAYOFMONTH(CURDATE())-1 DAY), INTERVAL 1 MONTH)
 		ORDER BY date DESC
 		LIMIT ? OFFSET ?`, idUser, idFunct, porPagina, offset)
 	if err != nil {
