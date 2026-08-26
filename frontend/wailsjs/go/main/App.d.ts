@@ -35,6 +35,12 @@ export function ListarPlanes():Promise<Array<models.Plan>>;
 
 export function ListarRegistrosFuncion(arg1:string,arg2:string,arg3:number,arg4:number):Promise<models.RecordPage>;
 
+export function ListarEstadisticasUsuarios():Promise<Array<models.UserStat>>;
+
+export function ListarTop15FuncionesPorUsuario(arg1:number):Promise<Array<models.FunctionUsage>>;
+
+export function ListarRegistrosPorUsuarioYFuncion(arg1:number,arg2:number,arg3:number,arg4:number):Promise<models.RecordPage>;
+
 export function ListarUsuarios(arg1:string,arg2:string,arg3:string):Promise<Array<models.User>>;
 
 export function ListarUsuariosBaja():Promise<Array<models.User>>;
