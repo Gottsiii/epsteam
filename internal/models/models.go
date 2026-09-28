@@ -83,11 +83,29 @@ type RecordStat struct {
 }
 
 // UserStat resume interacciones del mes actual por usuario.
+//
+// LastActivity es la fecha real de la última interacción del usuario
+// (MAX(monthRecord.date) dentro del mes actual) — lo que debe usarse para
+// calcular inactividad.
+//
+// LastUpdateUser es el campo `users.lastUpdate`, que representa otro tipo
+// de actualización (perfil, sync, etc.) y NO debe confundirse con la
+// actividad real de uso. Se expone solo como referencia comparativa.
+//
+// InactivityDays son los días transcurridos desde LastActivity hasta hoy.
+//
+// DeltaUpdateVsActivityDays es la diferencia en días entre LastUpdateUser y
+// LastActivity (puede ser negativa si el update ocurrió antes de la última
+// actividad, o positiva si ocurrió después). Es nil cuando no hay
+// LastUpdateUser disponible.
 type UserStat struct {
-	IDUser             int    `json:"id_user"`
-	Username           string `json:"username"`
-	TotalInteracciones int    `json:"total_interacciones"`
-	LastUpdate         string `json:"last_update"`
+	IDUser                    int    `json:"id_user"`
+	Username                  string `json:"username"`
+	TotalInteracciones        int    `json:"total_interacciones"`
+	LastActivity              string `json:"last_activity"`
+	LastUpdateUser            string `json:"last_update_user"`
+	InactivityDays            *int   `json:"inactivity_days,omitempty"`
+	DeltaUpdateVsActivityDays *int   `json:"delta_update_vs_activity_days,omitempty"`
 }
 
 // FunctionUsageByUser representa uso de funciones por usuario en el mes actual.
