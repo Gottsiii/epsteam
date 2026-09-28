@@ -71,7 +71,10 @@ export interface UserStat {
   id_user: number;
   username: string;
   total_interacciones: number;
-  last_update: string;
+  last_activity: string;
+  last_update_user: string;
+  inactivity_days?: number;
+  delta_update_vs_activity_days?: number;
 }
 
 export interface FunctionUsageByUser {

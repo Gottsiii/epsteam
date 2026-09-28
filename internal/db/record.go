@@ -82,16 +82,23 @@ func ListRegistrosFuncion(conn *sql.DB, modulo, funcion string, pagina, porPagin
 // GetUserStatsCurrentMonth devuelve usuarios con interacciones en el mes actual.
 func GetUserStatsCurrentMonth(conn *sql.DB) ([]models.UserStat, error) {
 	rows, err := conn.Query(`
-		SELECT
-			r.idUser,
-			u.username,
-			COUNT(r.idMonthRecord) AS total,
-			COALESCE(DATE_FORMAT(u.lastUpdate, '%Y-%m-%d %H:%i:%s'), '') AS lastUpdate
-		FROM monthRecord r
-		INNER JOIN users u ON r.idUser = u.idUser
-		WHERE YEAR(r.date) = YEAR(NOW()) AND MONTH(r.date) = MONTH(NOW())
-		GROUP BY r.idUser, u.username, u.lastUpdate
-		ORDER BY total DESC`)
+	SELECT
+		r.idUser,
+		u.username,
+		COUNT(r.idMonthRecord) AS total,
+		COALESCE(DATE_FORMAT(MAX(r.date), '%Y-%m-%d %H:%i:%s'), '') AS last_activity,
+		COALESCE(DATE_FORMAT(u.lastUpdate, '%Y-%m-%d %H:%i:%s'), '') AS last_update_user,
+		TIMESTAMPDIFF(DAY, MAX(r.date), NOW()) AS inactivity_days,
+		CASE
+			WHEN u.lastUpdate IS NULL THEN NULL
+			ELSE TIMESTAMPDIFF(DAY, MAX(r.date), u.lastUpdate)
+		END AS delta_update_vs_activity_days
+	FROM monthRecord r
+	INNER JOIN users u ON r.idUser = u.idUser
+	WHERE YEAR(r.date) = YEAR(NOW())
+	  AND MONTH(r.date) = MONTH(NOW())
+	GROUP BY r.idUser, u.username, u.lastUpdate
+	ORDER BY total DESC`)
 	if err != nil {
 		return nil, err
 	}
@@ -99,13 +106,36 @@ func GetUserStatsCurrentMonth(conn *sql.DB) ([]models.UserStat, error) {
 
 	var lista []models.UserStat
 	for rows.Next() {
-		var us models.UserStat
-		if err := rows.Scan(&us.IDUser, &us.Username, &us.TotalInteracciones, &us.LastUpdate); err != nil {
-			return nil, err
-		}
-		lista = append(lista, us)
+	var us models.UserStat
+	var inactivityDays sql.NullInt64
+	var deltaDays sql.NullInt64
+
+	if err := rows.Scan(
+		&us.IDUser,
+		&us.Username,
+		&us.TotalInteracciones,
+		&us.LastActivity,
+		&us.LastUpdateUser,
+		&inactivityDays,
+		&deltaDays,
+	); err != nil {
+		return nil, err
+	}
+
+	if inactivityDays.Valid {
+		days := int(inactivityDays.Int64)
+		us.InactivityDays = &days
+	}
+
+	if deltaDays.Valid {
+		days := int(deltaDays.Int64)
+		us.DeltaUpdateVsActivityDays = &days
+	}
+
+	lista = append(lista, us)
 	}
 	return lista, rows.Err()
+
 }
 
 // GetTopFunctionsByUser devuelve top 15 funciones usadas por un usuario en el mes actual.

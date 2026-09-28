@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	_ "embed"
 	"fmt"
 
 	"epsteam/internal/config"
@@ -13,16 +12,14 @@ import (
 	"epsteam/internal/util"
 )
 
-// Respaldo embebido de config.json dentro del propio .exe — si el archivo
-// externo no está junto al ejecutable (o no se pudo leer), se usa este.
-// El comentario //go:embed DEBE ir pegado al var, sin línea en blanco.
-//
-//go:embed config.json
-var configBytes []byte
-
 type App struct {
-	ctx     context.Context
-	conn    *sql.DB
+	ctx context.Context
+
+	// Conexión principal (API / core DB)
+	conn *sql.DB
+	// Conexión para funciones MCP
+	mcpConn *sql.DB
+
 	loadErr error
 }
 
@@ -33,22 +30,43 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	// Intenta config.json externo primero (para poder cambiar el DSN sin
-	// recompilar); si no lo encuentra, cae al respaldo embebido en el .exe.
-	cfg, err := config.LoadHybrid("config.json", configBytes)
+	// config.json debe vivir en la misma carpeta que el .exe compilado.
+	cfg, err := config.LoadFromExeDir()
 	if err != nil {
 		a.loadErr = err
 		fmt.Println("error cargando la configuración:", err)
 		return
 	}
 
-	conn, err := db.Connect(cfg.DSN)
+	// --- Conexión API ---
+	if cfg.API.DSN == "" {
+		a.loadErr = fmt.Errorf("config inválido: api.dsn vacío")
+		fmt.Println(a.loadErr)
+		return
+	}
+
+	conn, err := db.Connect(cfg.API.DSN)
 	if err != nil {
 		a.loadErr = err
-		fmt.Println("error conectando a MySQL:", err)
+		fmt.Println("error conectando a MySQL (API):", err)
 		return
 	}
 	a.conn = conn
+
+	// --- Conexión MCP ---
+	if cfg.MCP.DSN == "" {
+		a.loadErr = fmt.Errorf("config inválido: mcp.dsn vacío")
+		fmt.Println(a.loadErr)
+		return
+	}
+
+	mcpConn, err := db.Connect(cfg.MCP.DSN)
+	if err != nil {
+		a.loadErr = err
+		fmt.Println("error conectando a MySQL (MCP):", err)
+		return
+	}
+	a.mcpConn = mcpConn
 }
 
 func (a *App) check() error {
@@ -56,6 +74,17 @@ func (a *App) check() error {
 		return a.loadErr
 	}
 	return db.Healthy(a.conn)
+}
+
+// checkMCP valida específicamente la conexión MCP.
+func (a *App) checkMCP() error {
+	if a.loadErr != nil {
+		return a.loadErr
+	}
+	if a.mcpConn == nil {
+		return fmt.Errorf("conexión MCP no inicializada")
+	}
+	return db.Healthy(a.mcpConn)
 }
 
 // ---- Usuarios ----
@@ -271,3 +300,11 @@ func (a *App) ListarRegistrosPorUsuarioYFuncion(idUser, idFunct, pagina, porPagi
 	}
 	return db.GetRecordsByUserAndFunction(a.conn, idUser, idFunct, pagina, porPagina)
 }
+
+// ---- MCP (placeholder) ----
+// A partir de aquí se irán agregando los métodos que consultan la base MCP
+// usando a.mcpConn en vez de a.conn. Ejemplo:
+//
+// func (a *App) MCPPing() error {
+// 	return a.checkMCP()
+// }

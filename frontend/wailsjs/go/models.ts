@@ -284,7 +284,10 @@ export namespace models {
 	    id_user: number;
 	    username: string;
 	    total_interacciones: number;
-	    last_update: string;
+	    last_activity: string;
+	    last_update_user: string;
+	    inactivity_days?: number;
+	    delta_update_vs_activity_days?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new UserStat(source);
@@ -295,7 +298,10 @@ export namespace models {
 	        this.id_user = source["id_user"];
 	        this.username = source["username"];
 	        this.total_interacciones = source["total_interacciones"];
-	        this.last_update = source["last_update"];
+	        this.last_activity = source["last_activity"];
+	        this.last_update_user = source["last_update_user"];
+	        this.inactivity_days = source["inactivity_days"];
+	        this.delta_update_vs_activity_days = source["delta_update_vs_activity_days"];
 	    }
 	}
 

@@ -8,6 +8,33 @@ import {
 
 const POR_PAGINA = 50;
 
+function formatearFechaCorta(fecha?: string): string {
+  if (!fecha) return "—";
+  // "2026-09-28 13:36:54" -> "2026-09-28 13:36"
+  return fecha.slice(0, 16);
+}
+
+function estadoInactividad(dias?: number): { icono: string; texto: string; clase: string } {
+  if (dias === undefined || dias === null) {
+    return { icono: "⚪", texto: "Sin datos", clase: "neutral" };
+  }
+  if (dias <= 0) {
+    return { icono: "🟢", texto: "Actividad reciente", clase: "activo" };
+  }
+  if (dias <= 7) {
+    return { icono: "🟡", texto: `${dias} día${dias === 1 ? "" : "s"} sin actividad`, clase: "medio" };
+  }
+  return { icono: "🔴", texto: `${dias} día${dias === 1 ? "" : "s"} sin actividad`, clase: "alerta" };
+}
+
+function textoDeltaCorto(delta?: number): string {
+  if (delta === undefined || delta === null) return "";
+  if (delta === 0) return "mismo día";
+  const abs = Math.abs(delta);
+  if (delta < 0) return `${abs} día${abs === 1 ? "" : "s"} antes`;
+  return `${abs} día${abs === 1 ? "" : "s"} después`;
+}
+
 export default function RecordView() {
   const [usuarios, setUsuarios] = useState<UserStat[]>([]);
   const [funciones, setFunciones] = useState<FunctionUsageByUser[]>([]);
@@ -27,12 +54,17 @@ export default function RecordView() {
       .catch((err) => setError(String(err)));
   }, []);
 
-  const totalInteracciones = useMemo(() => usuarios.reduce((acc, u) => acc + u.total_interacciones, 0), [usuarios]);
+  const totalInteracciones = useMemo(
+    () => usuarios.reduce((acc, u) => acc + u.total_interacciones, 0),
+    [usuarios]
+  );
 
   const usuariosFiltrados = useMemo(() => {
     const q = busquedaUsuarios.trim().toLowerCase();
     if (!q) return usuarios;
-    return usuarios.filter((u) => String(u.id_user).includes(q) || u.username.toLowerCase().includes(q));
+    return usuarios.filter(
+      (u) => String(u.id_user).includes(q) || u.username.toLowerCase().includes(q)
+    );
   }, [usuarios, busquedaUsuarios]);
 
   const cargarFuncionesUsuario = async (user: UserStat) => {
@@ -119,21 +151,41 @@ export default function RecordView() {
       </div>
 
       <div className="record-slider">
-        {usuariosFiltrados.length === 0 && (
-          <p className="hint">Sin datos para el mes actual.</p>
-        )}
-        {usuariosFiltrados.map((u) => (
-          <button
-            key={u.id_user}
-            className={`record-card ${usuarioSeleccionado?.id_user === u.id_user ? "active" : ""}`}
-            onClick={() => cargarFuncionesUsuario(u)}
-          >
-            <span className="record-card-modulo">{u.username}</span>
-            <span className="record-card-funcion">{u.id_user}</span>
-            <span className="record-card-total">{u.total_interacciones.toLocaleString()} interacciones</span>
-            <span className="hint">{u.last_update ? `Última actividad: ${u.last_update}` : "Sin lastUpdate"}</span>
-          </button>
-        ))}
+        {usuariosFiltrados.length === 0 && <p className="hint">Sin datos para el mes actual.</p>}
+        {usuariosFiltrados.map((u) => {
+          const estado = estadoInactividad(u.inactivity_days);
+          return (
+            <button
+              key={u.id_user}
+              className={`record-card ${usuarioSeleccionado?.id_user === u.id_user ? "active" : ""}`}
+              onClick={() => cargarFuncionesUsuario(u)}
+            >
+              <span className="record-card-modulo">{u.username}</span>
+
+              <span className="record-card-total">{u.total_interacciones.toLocaleString()}</span>
+              <span className="record-card-total-label">Interacciones</span>
+
+              <span className="record-card-label">Última actividad</span>
+              <span className="record-card-value">{formatearFechaCorta(u.last_activity)}</span>
+
+              <span className={`record-card-estado record-card-estado-${estado.clase}`}>
+                {estado.icono} {estado.texto}
+              </span>
+
+              <span className="record-card-label">Last Update</span>
+              <span className="record-card-value">
+                {formatearFechaCorta(u.last_update_user)}
+                {u.delta_update_vs_activity_days !== undefined &&
+                  u.delta_update_vs_activity_days !== null && (
+                    <span className="record-card-delta-inline">
+                      {" "}
+                      ({textoDeltaCorto(u.delta_update_vs_activity_days)})
+                    </span>
+                  )}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {usuarioSeleccionado && (
@@ -189,9 +241,7 @@ export default function RecordView() {
                       <tr key={r.id_record}>
                         <td>{r.id_user}</td>
                         <td>
-                          <span
-                            className={`status-badge ${r.status === "success" ? "success" : "error"}`}
-                          >
+                          <span className={`status-badge ${r.status === "success" ? "success" : "error"}`}>
                             {r.status}
                           </span>
                         </td>

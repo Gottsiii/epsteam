@@ -6,11 +6,19 @@ import (
 	"os"
 )
 
-// Config es deliberadamente mínimo: esta app solo administra MySQL, no
-// llama ninguna API. Si en el futuro se necesita el bearer token de
-// apisupporttsmx, se agrega aquí como un campo más.
-type Config struct {
+// DBConfig representa el bloque de conexión de una sola base de datos
+// dentro de config.json (por ejemplo "api" o "mcp").
+type DBConfig struct {
 	DSN string `json:"dsn"`
+}
+
+// Config es deliberadamente mínimo: esta app solo administra conexiones
+// MySQL, no llama ninguna API externa. Se soportan dos bases: la principal
+// (API / core, usada por todo el CRUD de usuarios/permisos/estadísticas) y
+// la de MCP (funciones MCP, vive en otro servidor).
+type Config struct {
+	API DBConfig `json:"api"`
+	MCP DBConfig `json:"mcp"`
 }
 
 func Load(path string) (*Config, error) {
