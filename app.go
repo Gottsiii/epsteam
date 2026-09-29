@@ -15,9 +15,9 @@ import (
 type App struct {
 	ctx context.Context
 
-	// Conexión principal (API / core DB)
+	// Conexión principal (API / core DB — TSMX)
 	conn *sql.DB
-	// Conexión para funciones MCP
+	// Conexión para la base MCP (mcpaccess)
 	mcpConn *sql.DB
 
 	loadErr error
@@ -30,7 +30,6 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 
-	// config.json debe vivir en la misma carpeta que el .exe compilado.
 	cfg, err := config.LoadFromExeDir()
 	if err != nil {
 		a.loadErr = err
@@ -38,13 +37,11 @@ func (a *App) startup(ctx context.Context) {
 		return
 	}
 
-	// --- Conexión API ---
 	if cfg.API.DSN == "" {
 		a.loadErr = fmt.Errorf("config inválido: api.dsn vacío")
 		fmt.Println(a.loadErr)
 		return
 	}
-
 	conn, err := db.Connect(cfg.API.DSN)
 	if err != nil {
 		a.loadErr = err
@@ -53,13 +50,11 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.conn = conn
 
-	// --- Conexión MCP ---
 	if cfg.MCP.DSN == "" {
 		a.loadErr = fmt.Errorf("config inválido: mcp.dsn vacío")
 		fmt.Println(a.loadErr)
 		return
 	}
-
 	mcpConn, err := db.Connect(cfg.MCP.DSN)
 	if err != nil {
 		a.loadErr = err
@@ -76,7 +71,6 @@ func (a *App) check() error {
 	return db.Healthy(a.conn)
 }
 
-// checkMCP valida específicamente la conexión MCP.
 func (a *App) checkMCP() error {
 	if a.loadErr != nil {
 		return a.loadErr
@@ -87,7 +81,7 @@ func (a *App) checkMCP() error {
 	return db.Healthy(a.mcpConn)
 }
 
-// ---- Usuarios ----
+// ---- Usuarios (API / TSMX) ----
 
 func (a *App) ListarUsuarios(filtro, columna, modo string) ([]models.User, error) {
 	if err := a.check(); err != nil {
@@ -122,15 +116,10 @@ func (a *App) CrearUsuario(input models.NewUserInput) (models.CreatedUser, error
 	return creado, nil
 }
 
-// GenerarPassword regresa una contraseña aleatoria nueva (12 caracteres,
-// mayúsculas/minúsculas/números/símbolos) — la usa el botón "generar nueva
-// contraseña" tanto en alta como en edición.
 func (a *App) GenerarPassword() string {
 	return util.GenerarContrasena(12)
 }
 
-// GuardarUsuarioInput agrupa los datos editables de un usuario más el
-// estado final de su checklist de permisos.
 type GuardarUsuarioInput struct {
 	IDUser   int                   `json:"id_user"`
 	Username string                `json:"username"`
@@ -165,8 +154,6 @@ func (a *App) DarDeBajaUsuario(idUser int, nuevoDetalle string) error {
 	return nil
 }
 
-// DarDeAltaUsuario reactiva a un usuario previamente dado de baja: quita la
-// marca "BAJA DE USUARIO" (y el CTASK asociado) de su detalle.
 func (a *App) DarDeAltaUsuario(idUser int) error {
 	if err := a.check(); err != nil {
 		return err
@@ -196,7 +183,7 @@ func (a *App) ListarFuncionesPorUsuario(idUser int) ([]models.FuncionPermiso, er
 	return db.ListFuncionesPorUsuario(a.conn, idUser)
 }
 
-// ---- Módulos y funciones (catálogo) ----
+// ---- Módulos y funciones (catálogo API) ----
 
 func (a *App) ListarModulos() ([]models.Modulo, error) {
 	if err := a.check(); err != nil {
@@ -254,6 +241,8 @@ func (a *App) EliminarFuncion(idFunct int) error {
 	return db.DeleteFuncion(a.conn, idFunct)
 }
 
+// ---- Estadísticas (API) ----
+
 func (a *App) ListarEstadisticasFunciones() ([]models.RecordStat, error) {
 	if err := a.check(); err != nil {
 		return nil, err
@@ -301,10 +290,47 @@ func (a *App) ListarRegistrosPorUsuarioYFuncion(idUser, idFunct, pagina, porPagi
 	return db.GetRecordsByUserAndFunction(a.conn, idUser, idFunct, pagina, porPagina)
 }
 
-// ---- MCP (placeholder) ----
-// A partir de aquí se irán agregando los métodos que consultan la base MCP
-// usando a.mcpConn en vez de a.conn. Ejemplo:
-//
-// func (a *App) MCPPing() error {
-// 	return a.checkMCP()
-// }
+// ==== MCP (mcpaccess) ====
+// Los métodos MCP* pegan a a.mcpConn, nunca a a.conn — son la contraparte
+// exacta de los de arriba pero sobre la base mcpaccess.
+
+func (a *App) MCPListarUsuarios() ([]models.MCPUser, error) {
+	if err := a.checkMCP(); err != nil {
+		return nil, err
+	}
+	return db.ListMCPUsers(a.mcpConn)
+}
+
+func (a *App) MCPListarCatalogo() ([]models.MCPCatalogItem, error) {
+	if err := a.checkMCP(); err != nil {
+		return nil, err
+	}
+	return db.ListMCPCatalog(a.mcpConn)
+}
+
+func (a *App) MCPListarEstadisticasUsuarios() ([]models.MCPUserStat, error) {
+	if err := a.checkMCP(); err != nil {
+		return nil, err
+	}
+	return db.ListMCPUserStats(a.mcpConn)
+}
+
+func (a *App) MCPListarFuncionesPorUsuario(idUser int) ([]models.MCPFunctionUsage, error) {
+	if err := a.checkMCP(); err != nil {
+		return nil, err
+	}
+	return db.ListMCPFunctionsByUser(a.mcpConn, idUser)
+}
+
+func (a *App) MCPListarInteracciones(idUser, idFunct, pagina, porPagina int) (models.MCPInteractionPage, error) {
+	if err := a.checkMCP(); err != nil {
+		return models.MCPInteractionPage{}, err
+	}
+	if pagina < 1 {
+		pagina = 1
+	}
+	if porPagina < 1 {
+		porPagina = 50
+	}
+	return db.GetMCPInteractionsByUserAndFunction(a.mcpConn, idUser, idFunct, pagina, porPagina)
+}

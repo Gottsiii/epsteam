@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // DBConfig representa el bloque de conexión de una sola base de datos
@@ -12,47 +13,39 @@ type DBConfig struct {
 	DSN string `json:"dsn"`
 }
 
-// Config es deliberadamente mínimo: esta app solo administra conexiones
-// MySQL, no llama ninguna API externa. Se soportan dos bases: la principal
-// (API / core, usada por todo el CRUD de usuarios/permisos/estadísticas) y
-// la de MCP (funciones MCP, vive en otro servidor).
+// Config es la estructura completa de config.json. Se mantiene mínima:
+// esta app solo administra conexiones MySQL, no llama ninguna API externa.
 type Config struct {
 	API DBConfig `json:"api"`
 	MCP DBConfig `json:"mcp"`
 }
 
-func Load(path string) (*Config, error) {
-	data, err := os.ReadFile(path)
+// LoadFromExeDir carga config.json desde la misma carpeta donde vive el
+// ejecutable compilado (.exe). Esto permite cambiar las conexiones sin
+// necesidad de recompilar la aplicación.
+func LoadFromExeDir() (*Config, error) {
+	exePath, err := os.Executable()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("no se pudo resolver ruta del ejecutable: %w", err)
 	}
-	return parse(data)
+
+	exeDir := filepath.Dir(exePath)
+	cfgPath := filepath.Join(exeDir, "config.json")
+
+	return Load(cfgPath)
 }
 
-// LoadHybrid intenta leer el archivo externo (path) primero — así en
-// producción se puede seguir cambiando el DSN sin recompilar. Si no lo
-// encuentra, cae al respaldo embebido en el binario (fallback, los bytes
-// que va:embed metió en el .exe con //go:embed en app.go).
-//
-// NOTA de seguridad: si usas el respaldo embebido, el DSN (con el password
-// de MySQL) queda dentro del .exe compilado y es extraíble con `strings`
-// sobre el binario. Está bien para esta herramienta interna, pero tenlo
-// presente si el .exe llega a salir de la red de la empresa.
-func LoadHybrid(path string, embebido []byte) (*Config, error) {
-	if data, err := os.ReadFile(path); err == nil {
-		return parse(data)
+// Load lee y parsea config.json desde una ruta específica.
+func Load(path string) (*Config, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("no se pudo leer config.json en %s: %w", path, err)
 	}
 
-	if len(embebido) == 0 {
-		return nil, fmt.Errorf("no se encontró %q y no hay configuración embebida de respaldo", path)
-	}
-	return parse(embebido)
-}
-
-func parse(data []byte) (*Config, error) {
 	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, err
+	if err := json.Unmarshal(raw, &cfg); err != nil {
+		return nil, fmt.Errorf("config.json inválido: %w", err)
 	}
+
 	return &cfg, nil
 }

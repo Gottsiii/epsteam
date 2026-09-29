@@ -86,6 +86,26 @@ export function ListarUsuariosBaja() {
   return window['go']['main']['App']['ListarUsuariosBaja']();
 }
 
+export function MCPListarCatalogo() {
+  return window['go']['main']['App']['MCPListarCatalogo']();
+}
+
+export function MCPListarEstadisticasUsuarios() {
+  return window['go']['main']['App']['MCPListarEstadisticasUsuarios']();
+}
+
+export function MCPListarFuncionesPorUsuario(arg1) {
+  return window['go']['main']['App']['MCPListarFuncionesPorUsuario'](arg1);
+}
+
+export function MCPListarInteracciones(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['MCPListarInteracciones'](arg1, arg2, arg3, arg4);
+}
+
+export function MCPListarUsuarios() {
+  return window['go']['main']['App']['MCPListarUsuarios']();
+}
+
 export function ModificarFuncion(arg1, arg2, arg3) {
   return window['go']['main']['App']['ModificarFuncion'](arg1, arg2, arg3);
 }

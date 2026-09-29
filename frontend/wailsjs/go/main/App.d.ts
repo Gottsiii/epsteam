@@ -45,6 +45,16 @@ export function ListarUsuarios(arg1:string,arg2:string,arg3:string):Promise<Arra
 
 export function ListarUsuariosBaja():Promise<Array<models.User>>;
 
+export function MCPListarCatalogo():Promise<Array<models.MCPCatalogItem>>;
+
+export function MCPListarEstadisticasUsuarios():Promise<Array<models.MCPUserStat>>;
+
+export function MCPListarFuncionesPorUsuario(arg1:number):Promise<Array<models.MCPFunctionUsage>>;
+
+export function MCPListarInteracciones(arg1:number,arg2:number,arg3:number,arg4:number):Promise<models.MCPInteractionPage>;
+
+export function MCPListarUsuarios():Promise<Array<models.MCPUser>>;
+
 export function ModificarFuncion(arg1:number,arg2:number,arg3:string):Promise<void>;
 
 export function ModificarModulo(arg1:number,arg2:string):Promise<void>;

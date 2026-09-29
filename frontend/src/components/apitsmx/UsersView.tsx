@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { User } from "../types";
-import { listarUsuarios, listarUsuariosBaja, buscarUsuarios } from "../api";
-import UserEditDrawer from "./UserEditDrawer";
-import NewUserModal from "./NewUserModal";
+import { User } from "../../types";
+import { listarUsuarios, listarUsuariosBaja, buscarUsuarios } from "../../api";
+import UserEditDrawer from "./shared/UserEditDrawer";
+import NewUserModal from "./shared/NewUserModal";
 
 export default function UsersView() {
   const [usuarios, setUsuarios] = useState<User[]>([]);

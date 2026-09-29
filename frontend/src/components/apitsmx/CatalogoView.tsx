@@ -10,7 +10,7 @@ import {
   modificarFuncion,
   eliminarFuncion,
 } from "../api";
-import ConfirmActionModal from "./ConfirmActionModal";
+import ConfirmActionModal from "./shared/ConfirmActionModal";
 
 type AccionModal =
   | { tipo: "renombrarModulo"; idModulo: number; nombreActual: string }

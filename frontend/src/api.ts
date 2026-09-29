@@ -19,6 +19,11 @@ import {
   RecordRow,
   UserStat,
   FunctionUsageByUser,
+  MCPUser,
+  MCPCatalogItem,
+  MCPUserStat,
+  MCPFunctionUsage,
+  MCPInteractionRow,
 } from "./types";
 
 const ensureArrayResponse = <T>(value: unknown, metodo: string): T[] => {
@@ -33,6 +38,8 @@ const ensureArrayResponse = <T>(value: unknown, metodo: string): T[] => {
   }
   return value as T[];
 };
+
+// ==== API (TSMX) ====
 
 export const listarUsuarios = async (filtro: string, columna: string, modo: string): Promise<User[]> =>
   ensureArrayResponse<User>(await Backend.ListarUsuarios(filtro, columna, modo), "ListarUsuarios");
@@ -101,3 +108,23 @@ export const listarTop15FuncionesPorUsuario = (idUser: number) =>
 
 export const listarRegistrosPorUsuarioYFuncion = (idUser: number, idFunct: number, pagina: number, porPagina: number) =>
   Backend.ListarRegistrosPorUsuarioYFuncion(idUser, idFunct, pagina, porPagina) as unknown as Promise<{ rows: RecordRow[]; total: number }>;
+
+// ==== MCP ====
+
+export const mcpListarUsuarios = async (): Promise<MCPUser[]> =>
+  ensureArrayResponse<MCPUser>(await (Backend as any).MCPListarUsuarios(), "MCPListarUsuarios");
+
+export const mcpListarCatalogo = async (): Promise<MCPCatalogItem[]> =>
+  ensureArrayResponse<MCPCatalogItem>(await (Backend as any).MCPListarCatalogo(), "MCPListarCatalogo");
+
+export const mcpListarEstadisticasUsuarios = () =>
+  (Backend as any).MCPListarEstadisticasUsuarios() as unknown as Promise<MCPUserStat[]>;
+
+export const mcpListarFuncionesPorUsuario = (idUser: number) =>
+  (Backend as any).MCPListarFuncionesPorUsuario(idUser) as unknown as Promise<MCPFunctionUsage[]>;
+
+export const mcpListarInteracciones = (idUser: number, idFunct: number, pagina: number, porPagina: number) =>
+  (Backend as any).MCPListarInteracciones(idUser, idFunct, pagina, porPagina) as unknown as Promise<{
+    rows: MCPInteractionRow[];
+    total: number;
+  }>;

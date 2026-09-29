@@ -103,6 +103,129 @@ export namespace models {
 	        this.usos = source["usos"];
 	    }
 	}
+	export class MCPCatalogItem {
+	    id_mcp: number;
+	    mcp: string;
+	    id_funct?: number;
+	    funcion?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPCatalogItem(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_mcp = source["id_mcp"];
+	        this.mcp = source["mcp"];
+	        this.id_funct = source["id_funct"];
+	        this.funcion = source["funcion"];
+	    }
+	}
+	export class MCPFunctionUsage {
+	    id_funct: number;
+	    mcp: string;
+	    funcion: string;
+	    usos: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPFunctionUsage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_funct = source["id_funct"];
+	        this.mcp = source["mcp"];
+	        this.funcion = source["funcion"];
+	        this.usos = source["usos"];
+	    }
+	}
+	export class MCPInteractionRow {
+	    id_interaction: number;
+	    id_user: number;
+	    output: string;
+	    date: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPInteractionRow(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_interaction = source["id_interaction"];
+	        this.id_user = source["id_user"];
+	        this.output = source["output"];
+	        this.date = source["date"];
+	    }
+	}
+	export class MCPInteractionPage {
+	    rows: MCPInteractionRow[];
+	    total: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPInteractionPage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.rows = this.convertValues(source["rows"], MCPInteractionRow);
+	        this.total = source["total"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	
+	export class MCPUser {
+	    id_user: number;
+	    email: string;
+	    comment: string;
+	    last_update: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPUser(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_user = source["id_user"];
+	        this.email = source["email"];
+	        this.comment = source["comment"];
+	        this.last_update = source["last_update"];
+	    }
+	}
+	export class MCPUserStat {
+	    id_user: number;
+	    email: string;
+	    total_interacciones: number;
+	    last_activity: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPUserStat(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_user = source["id_user"];
+	        this.email = source["email"];
+	        this.total_interacciones = source["total_interacciones"];
+	        this.last_activity = source["last_activity"];
+	    }
+	}
 	export class Modulo {
 	    id_modulo: number;
 	    name: string;

@@ -732,10 +732,10 @@ button.danger:disabled {
   flex: 1;
 }
 
-/* ---------- Pantalla de inicio ---------- */
+/* ---------- Home (Inicio) ---------- */
 
 .home-screen {
-  max-width: 720px;
+  max-width: 760px;
   margin: 6vh auto 0;
   text-align: center;
   display: flex;
@@ -766,41 +766,93 @@ button.danger:disabled {
 .home-subtitle {
   color: var(--text-muted);
   font-size: 14px;
-  margin: 0 0 32px;
-}
-
-.home-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  width: 100%;
-  text-align: left;
-  margin-bottom: 32px;
-}
-
-.home-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 18px;
-}
-
-.home-card h3 {
-  margin: 0 0 6px;
-  font-size: 13px;
-  color: var(--accent);
-}
-
-.home-card p {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.5;
+  margin: 0 0 24px;
 }
 
 .home-cta {
+  margin-top: 14px;
   padding: 12px 28px;
   font-size: 14px;
+}
+
+/* selector de entorno */
+.home-env-selector {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 20px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.home-env-selector h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.home-env-selector p {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.home-env-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.home-env-btn {
+  border: 1px solid var(--border);
+  color: white;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: 190px;
+  transition: transform 0.12s, opacity 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+
+.home-env-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.96;
+  border-color: var(--accent);
+}
+
+.home-env-btn.api {
+  background: linear-gradient(120deg, #ff007a, #b3005a);
+}
+
+.home-env-btn.mcp {
+  background: linear-gradient(120deg, #4a7dff, #2649ad);
+}
+
+.home-env-btn.selected {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+  border-color: #fff;
+}
+
+.home-env-current {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.home-env-current strong {
+  color: var(--text);
+}
+
+/* navegación bloqueada hasta elegir modo */
+.dock-disabled {
+  opacity: 0.9;
+}
+
+.dock button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ---------- Catálogo: vista de llave (columnas) ---------- */

@@ -71,10 +71,7 @@ export interface UserStat {
   id_user: number;
   username: string;
   total_interacciones: number;
-  last_activity: string;
-  last_update_user: string;
-  inactivity_days?: number;
-  delta_update_vs_activity_days?: number;
+  last_update: string;
 }
 
 export interface FunctionUsageByUser {
@@ -88,5 +85,42 @@ export interface RecordRow {
   id_record: number;
   id_user: number;
   status: string;
+  date: string;
+}
+
+// ==== MCP ====
+
+export interface MCPUser {
+  id_user: number;
+  email: string;
+  comment: string;
+  last_update: string;
+}
+
+export interface MCPCatalogItem {
+  id_mcp: number;
+  mcp: string;
+  id_funct?: number;
+  funcion?: string;
+}
+
+export interface MCPUserStat {
+  id_user: number;
+  email: string;
+  total_interacciones: number;
+  last_activity: string;
+}
+
+export interface MCPFunctionUsage {
+  id_funct: number;
+  mcp: string;
+  funcion: string;
+  usos: number;
+}
+
+export interface MCPInteractionRow {
+  id_interaction: number;
+  id_user: number;
+  output: string;
   date: string;
 }
