@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { MCPUser } from "../types";
-import { mcpListarUsuarios } from "../api";
+import { MCPUser } from "../../types";
+import { mcpListarUsuarios } from "../../api";
 
 export default function MCPUsersView() {
   const [usuarios, setUsuarios] = useState<MCPUser[]>([]);

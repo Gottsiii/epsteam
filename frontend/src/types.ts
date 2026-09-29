@@ -67,11 +67,19 @@ export interface RecordStat {
   total: number;
 }
 
+// Sincronizado con internal/models/models.go -> UserStat.
+// last_activity: última interacción real (MAX(monthRecord.date)).
+// last_update_user: users.lastUpdate (solo referencia, no usar para inactividad).
+// inactivity_days: días desde last_activity hasta hoy.
+// delta_update_vs_activity_days: diferencia en días entre last_update_user y last_activity.
 export interface UserStat {
   id_user: number;
   username: string;
   total_interacciones: number;
-  last_update: string;
+  last_activity: string;
+  last_update_user: string;
+  inactivity_days?: number;
+  delta_update_vs_activity_days?: number;
 }
 
 export interface FunctionUsageByUser {
@@ -88,7 +96,7 @@ export interface RecordRow {
   date: string;
 }
 
-// ==== MCP ====
+// ==== MCP posible placeholder ====
 
 export interface MCPUser {
   id_user: number;

@@ -46,6 +46,52 @@ export namespace main {
 		    return a;
 		}
 	}
+	export class MCPBajaUsuarioInput {
+	    id_user: number;
+	    sctask: string;
+	    motivo?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPBajaUsuarioInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_user = source["id_user"];
+	        this.sctask = source["sctask"];
+	        this.motivo = source["motivo"];
+	    }
+	}
+	export class MCPCrearUsuarioInput {
+	    email: string;
+	    comment: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPCrearUsuarioInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.email = source["email"];
+	        this.comment = source["comment"];
+	    }
+	}
+	export class MCPGuardarUsuarioInput {
+	    id_user: number;
+	    email: string;
+	    comment: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new MCPGuardarUsuarioInput(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id_user = source["id_user"];
+	        this.email = source["email"];
+	        this.comment = source["comment"];
+	    }
+	}
 
 }
 

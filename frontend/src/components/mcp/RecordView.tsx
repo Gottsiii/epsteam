@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { MCPFunctionUsage, MCPInteractionRow, MCPUserStat } from "../types";
-import { mcpListarEstadisticasUsuarios, mcpListarFuncionesPorUsuario, mcpListarInteracciones } from "../api";
+import { MCPFunctionUsage, MCPInteractionRow, MCPUserStat } from "../../types";
+import { mcpListarEstadisticasUsuarios, mcpListarFuncionesPorUsuario, mcpListarInteracciones } from "../../api";
 
 const POR_PAGINA = 50;
 

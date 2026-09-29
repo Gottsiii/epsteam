@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { FunctionUsageByUser, RecordRow, UserStat } from "../types";
+import { FunctionUsageByUser, RecordRow, UserStat } from "../../types";
 import {
   listarEstadisticasUsuarios,
   listarRegistrosPorUsuarioYFuncion,
   listarTop15FuncionesPorUsuario,
-} from "../api";
+} from "../../api";
 
 const POR_PAGINA = 50;
 

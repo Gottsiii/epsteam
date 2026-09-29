@@ -86,6 +86,26 @@ export function ListarUsuariosBaja() {
   return window['go']['main']['App']['ListarUsuariosBaja']();
 }
 
+export function MCPBuscarUsuarios(arg1) {
+  return window['go']['main']['App']['MCPBuscarUsuarios'](arg1);
+}
+
+export function MCPCrearUsuario(arg1) {
+  return window['go']['main']['App']['MCPCrearUsuario'](arg1);
+}
+
+export function MCPDarDeAltaUsuario(arg1) {
+  return window['go']['main']['App']['MCPDarDeAltaUsuario'](arg1);
+}
+
+export function MCPDarDeBajaUsuario(arg1) {
+  return window['go']['main']['App']['MCPDarDeBajaUsuario'](arg1);
+}
+
+export function MCPGuardarUsuario(arg1) {
+  return window['go']['main']['App']['MCPGuardarUsuario'](arg1);
+}
+
 export function MCPListarCatalogo() {
   return window['go']['main']['App']['MCPListarCatalogo']();
 }
@@ -104,6 +124,14 @@ export function MCPListarInteracciones(arg1, arg2, arg3, arg4) {
 
 export function MCPListarUsuarios() {
   return window['go']['main']['App']['MCPListarUsuarios']();
+}
+
+export function MCPListarUsuariosActivos() {
+  return window['go']['main']['App']['MCPListarUsuariosActivos']();
+}
+
+export function MCPListarUsuariosBaja() {
+  return window['go']['main']['App']['MCPListarUsuariosBaja']();
 }
 
 export function ModificarFuncion(arg1, arg2, arg3) {

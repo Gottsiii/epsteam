@@ -334,3 +334,116 @@ func (a *App) MCPListarInteracciones(idUser, idFunct, pagina, porPagina int) (mo
 	}
 	return db.GetMCPInteractionsByUserAndFunction(a.mcpConn, idUser, idFunct, pagina, porPagina)
 }
+
+// ---- MCP: Usuarios ----
+
+// MCPCrearUsuarioInput agrupa los campos básicos de alta para users en MCP.
+type MCPCrearUsuarioInput struct {
+	Email   string `json:"email"`
+	Comment string `json:"comment"`
+}
+
+// MCPBajaUsuarioInput define los datos para baja lógica en MCP.
+// Se sigue el patrón textual:
+// " - BAJA DE USUARIO -> SCTASK000000"
+type MCPBajaUsuarioInput struct {
+	IDUser  int    `json:"id_user"`
+	SCTASK  string `json:"sctask"`
+	Motivo  string `json:"motivo,omitempty"`
+}
+
+// MCPGuardarUsuarioInput permite edición simple de users MCP.
+type MCPGuardarUsuarioInput struct {
+	IDUser   int    `json:"id_user"`
+	Email    string `json:"email"`
+	Comment  string `json:"comment"`
+}
+
+// MCPListarUsuariosActivos lista users que NO tienen la marca de baja
+// en el comentario.
+func (a *App) MCPListarUsuariosActivos() ([]models.MCPUser, error) {
+	if err := a.checkMCP(); err != nil {
+		return nil, err
+	}
+	return db.MCPListUsersActive(a.mcpConn)
+}
+
+// MCPListarUsuariosBaja lista users con marca de baja en comentario.
+func (a *App) MCPListarUsuariosBaja() ([]models.MCPUser, error) {
+	if err := a.checkMCP(); err != nil {
+		return nil, err
+	}
+	return db.MCPListUsersBaja(a.mcpConn)
+}
+
+// MCPBuscarUsuarios hace búsqueda global en users MCP (email/comment/id).
+func (a *App) MCPBuscarUsuarios(texto string) ([]models.MCPUser, error) {
+	if err := a.checkMCP(); err != nil {
+		return nil, err
+	}
+	return db.MCPSearchUsers(a.mcpConn, texto)
+}
+
+// MCPCrearUsuario crea un user básico MCP.
+func (a *App) MCPCrearUsuario(input MCPCrearUsuarioInput) (models.MCPUser, error) {
+	if err := a.checkMCP(); err != nil {
+		return models.MCPUser{}, err
+	}
+
+	creado, err := db.MCPCreateUser(a.mcpConn, input.Email, input.Comment)
+	if err != nil {
+		return models.MCPUser{}, err
+	}
+
+	logger.Registrar("MCP_CREAR_USUARIO", fmt.Sprintf("idUser=%d email=%s", creado.IDUser, creado.Email))
+	return creado, nil
+}
+
+// MCPGuardarUsuario edita email/comment de un user MCP.
+func (a *App) MCPGuardarUsuario(input MCPGuardarUsuarioInput) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+
+	if err := db.MCPSaveUser(a.mcpConn, input.IDUser, input.Email, input.Comment); err != nil {
+		return err
+	}
+
+	logger.Registrar("MCP_GUARDAR_USUARIO", fmt.Sprintf("idUser=%d", input.IDUser))
+	return nil
+}
+
+// MCPDarDeBajaUsuario aplica baja lógica textual:
+// " - BAJA DE USUARIO -> SCTASK000000"
+// No elimina el registro.
+func (a *App) MCPDarDeBajaUsuario(input MCPBajaUsuarioInput) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+
+	if input.SCTASK == "" {
+		return fmt.Errorf("SCTASK requerido para la baja")
+	}
+
+	if err := db.MCPDeactivateUser(a.mcpConn, input.IDUser, input.SCTASK, input.Motivo); err != nil {
+		return err
+	}
+
+	logger.Registrar("MCP_BAJA_USUARIO", fmt.Sprintf("idUser=%d sctask=%s", input.IDUser, input.SCTASK))
+	return nil
+}
+
+// MCPDarDeAltaUsuario reactiva a un user MCP quitando la marca de baja
+// y el token SCTASK del comentario.
+func (a *App) MCPDarDeAltaUsuario(idUser int) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+
+	if err := db.MCPReactivateUser(a.mcpConn, idUser); err != nil {
+		return err
+	}
+
+	logger.Registrar("MCP_ALTA_USUARIO", fmt.Sprintf("idUser=%d", idUser))
+	return nil
+}

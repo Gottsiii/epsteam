@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { User, FuncionPermiso, Plan } from "../types";
-import { listarFuncionesPorUsuario, listarPlanes, guardarUsuario, darDeBajaUsuario, darDeAltaUsuario, generarPassword } from "../api";
-import ConfirmBajaModal from "./shared/ConfirmBajaModal";
-import ConfirmActionModal from "./shared/ConfirmActionModal";
+import { User, FuncionPermiso, Plan } from "../../types";
+import { listarFuncionesPorUsuario, listarPlanes, guardarUsuario, darDeBajaUsuario, darDeAltaUsuario, generarPassword } from "../../api";
+import ConfirmBajaModal from "../shared/ConfirmBajaModal";
+import ConfirmActionModal from "../shared/ConfirmActionModal";
 
 interface Props {
   usuario: User;

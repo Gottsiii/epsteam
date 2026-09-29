@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Modulo, ModuloFuncion } from "../types";
+import { Modulo, ModuloFuncion } from "../../types";
 import {
   listarModulos,
   listarEstructuraModulos,
@@ -9,8 +9,8 @@ import {
   crearFuncion,
   modificarFuncion,
   eliminarFuncion,
-} from "../api";
-import ConfirmActionModal from "./shared/ConfirmActionModal";
+} from "../../api";
+import ConfirmActionModal from "../shared/ConfirmActionModal";
 
 type AccionModal =
   | { tipo: "renombrarModulo"; idModulo: number; nombreActual: string }

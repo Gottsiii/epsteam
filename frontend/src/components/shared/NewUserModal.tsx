@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { NewUserInput, CreatedUser } from "../types";
-import { crearUsuario } from "../api";
+import { NewUserInput, CreatedUser } from "../../types";
+import { crearUsuario } from "../../api";
 
 interface Props {
   onClose: () => void;

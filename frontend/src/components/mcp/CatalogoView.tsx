@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { MCPCatalogItem } from "../types";
-import { mcpListarCatalogo } from "../api";
+import { MCPCatalogItem } from "../../types";
+import { mcpListarCatalogo } from "../../api";
 
 export default function MCPCatalogoView() {
   const [items, setItems] = useState<MCPCatalogItem[]>([]);
