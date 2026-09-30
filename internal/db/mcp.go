@@ -6,32 +6,6 @@ import (
 	"epsteam/internal/models"
 )
 
-// ListMCPUsers devuelve todos los usuarios registrados en la base MCP.
-func ListMCPUsers(conn *sql.DB) ([]models.MCPUser, error) {
-	rows, err := conn.Query(`
-		SELECT
-			idUser,
-			email,
-			COALESCE(comment, ''),
-			COALESCE(DATE_FORMAT(lastUpdate, '%Y-%m-%d %H:%i:%s'), '')
-		FROM users
-		ORDER BY idUser`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var lista []models.MCPUser
-	for rows.Next() {
-		var u models.MCPUser
-		if err := rows.Scan(&u.IDUser, &u.Email, &u.Comment, &u.LastUpdate); err != nil {
-			return nil, err
-		}
-		lista = append(lista, u)
-	}
-	return lista, rows.Err()
-}
-
 // ListMCPCatalog devuelve el árbol mcp -> función (para la vista de
 // catálogo de MCPs, análogo a módulos y funciones de la API).
 func ListMCPCatalog(conn *sql.DB) ([]models.MCPCatalogItem, error) {

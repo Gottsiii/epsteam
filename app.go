@@ -291,15 +291,9 @@ func (a *App) ListarRegistrosPorUsuarioYFuncion(idUser, idFunct, pagina, porPagi
 }
 
 // ==== MCP (mcpaccess) ====
-// Los métodos MCP* pegan a a.mcpConn, nunca a a.conn — son la contraparte
-// exacta de los de arriba pero sobre la base mcpaccess.
+// Los métodos MCP* pegan a a.mcpConn, nunca a a.conn.
 
-func (a *App) MCPListarUsuarios() ([]models.MCPUser, error) {
-	if err := a.checkMCP(); err != nil {
-		return nil, err
-	}
-	return db.ListMCPUsers(a.mcpConn)
-}
+// ---- MCP: Catálogo y estadísticas ----
 
 func (a *App) MCPListarCatalogo() ([]models.MCPCatalogItem, error) {
 	if err := a.checkMCP(); err != nil {
@@ -347,20 +341,21 @@ type MCPCrearUsuarioInput struct {
 // Se sigue el patrón textual:
 // " - BAJA DE USUARIO -> SCTASK000000"
 type MCPBajaUsuarioInput struct {
-	IDUser  int    `json:"id_user"`
-	SCTASK  string `json:"sctask"`
-	Motivo  string `json:"motivo,omitempty"`
+	IDUser int    `json:"id_user"`
+	SCTASK string `json:"sctask"`
+	Motivo string `json:"motivo,omitempty"`
 }
 
 // MCPGuardarUsuarioInput permite edición simple de users MCP.
 type MCPGuardarUsuarioInput struct {
-	IDUser   int    `json:"id_user"`
-	Email    string `json:"email"`
-	Comment  string `json:"comment"`
+	IDUser  int    `json:"id_user"`
+	Email   string `json:"email"`
+	Comment string `json:"comment"`
 }
 
 // MCPListarUsuariosActivos lista users que NO tienen la marca de baja
-// en el comentario.
+// en el comentario. Es el método que debe usar la vista principal de
+// usuarios MCP (equivalente a ListarUsuarios de la API).
 func (a *App) MCPListarUsuariosActivos() ([]models.MCPUser, error) {
 	if err := a.checkMCP(); err != nil {
 		return nil, err
@@ -376,7 +371,7 @@ func (a *App) MCPListarUsuariosBaja() ([]models.MCPUser, error) {
 	return db.MCPListUsersBaja(a.mcpConn)
 }
 
-// MCPBuscarUsuarios hace búsqueda global en users MCP (email/comment/id).
+// MCPBuscarUsuarios hace búsqueda global en users MCP activos (email/comment/id).
 func (a *App) MCPBuscarUsuarios(texto string) ([]models.MCPUser, error) {
 	if err := a.checkMCP(); err != nil {
 		return nil, err

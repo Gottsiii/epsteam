@@ -111,20 +111,98 @@ export const listarRegistrosPorUsuarioYFuncion = (idUser: number, idFunct: numbe
 
 // ==== MCP ====
 
-export const mcpListarUsuarios = async (): Promise<MCPUser[]> =>
-  ensureArrayResponse<MCPUser>(await (Backend as any).MCPListarUsuarios(), "MCPListarUsuarios");
+export const mcpListarUsuariosActivos = async (): Promise<MCPUser[]> =>
+  ensureArrayResponse<MCPUser>(
+    await Backend.MCPListarUsuariosActivos(),
+    "MCPListarUsuariosActivos"
+  );
+
+export const mcpListarUsuariosBaja = async (): Promise<MCPUser[]> =>
+  ensureArrayResponse<MCPUser>(
+    await Backend.MCPListarUsuariosBaja(),
+    "MCPListarUsuariosBaja"
+  );
+
+export const mcpBuscarUsuarios = async (texto: string): Promise<MCPUser[]> =>
+  ensureArrayResponse<MCPUser>(
+    await Backend.MCPBuscarUsuarios(texto),
+    "MCPBuscarUsuarios"
+  );
+
+export const mcpCrearUsuario = (email: string, comment: string) =>
+  Backend.MCPCrearUsuario(
+    main.MCPCrearUsuarioInput.createFrom({
+      email,
+      comment,
+    })
+  ) as unknown as Promise<MCPUser>;
+
+export const mcpGuardarUsuario = (
+  idUser: number,
+  email: string,
+  comment: string
+) =>
+  Backend.MCPGuardarUsuario(
+    main.MCPGuardarUsuarioInput.createFrom({
+      id_user: idUser,
+      email,
+      comment,
+    })
+  ) as unknown as Promise<void>;
+
+export const mcpDarDeBajaUsuario = (
+  idUser: number,
+  sctask: string,
+  motivo = ""
+) =>
+  Backend.MCPDarDeBajaUsuario(
+    main.MCPBajaUsuarioInput.createFrom({
+      id_user: idUser,
+      sctask,
+      motivo,
+    })
+  ) as unknown as Promise<void>;
+
+export const mcpDarDeAltaUsuario = (idUser: number) =>
+  Backend.MCPDarDeAltaUsuario(idUser) as unknown as Promise<void>;
+
+// ==== MCP: catálogo y estadísticas ====
 
 export const mcpListarCatalogo = async (): Promise<MCPCatalogItem[]> =>
-  ensureArrayResponse<MCPCatalogItem>(await (Backend as any).MCPListarCatalogo(), "MCPListarCatalogo");
+  ensureArrayResponse<MCPCatalogItem>(
+    await Backend.MCPListarCatalogo(),
+    "MCPListarCatalogo"
+  );
 
-export const mcpListarEstadisticasUsuarios = () =>
-  (Backend as any).MCPListarEstadisticasUsuarios() as unknown as Promise<MCPUserStat[]>;
+export const mcpListarEstadisticasUsuarios = async (): Promise<MCPUserStat[]> =>
+  ensureArrayResponse<MCPUserStat>(
+    await Backend.MCPListarEstadisticasUsuarios(),
+    "MCPListarEstadisticasUsuarios"
+  );
 
-export const mcpListarFuncionesPorUsuario = (idUser: number) =>
-  (Backend as any).MCPListarFuncionesPorUsuario(idUser) as unknown as Promise<MCPFunctionUsage[]>;
+export const mcpListarFuncionesPorUsuario = async (
+  idUser: number
+): Promise<MCPFunctionUsage[]> =>
+  ensureArrayResponse<MCPFunctionUsage>(
+    await Backend.MCPListarFuncionesPorUsuario(idUser),
+    "MCPListarFuncionesPorUsuario"
+  );
 
-export const mcpListarInteracciones = (idUser: number, idFunct: number, pagina: number, porPagina: number) =>
-  (Backend as any).MCPListarInteracciones(idUser, idFunct, pagina, porPagina) as unknown as Promise<{
-    rows: MCPInteractionRow[];
-    total: number;
-  }>;
+export const mcpListarInteracciones = async (
+  idUser: number,
+  idFunct: number,
+  pagina: number,
+  porPagina: number
+): Promise<{ rows: MCPInteractionRow[]; total: number }> => {
+  const response = await Backend.MCPListarInteracciones(
+    idUser,
+    idFunct,
+    pagina,
+    porPagina
+  );
+
+  return {
+    rows: response?.rows ?? [],
+    total: response?.total ?? 0,
+  };
+};

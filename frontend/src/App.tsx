@@ -5,7 +5,7 @@ import CatalogoView from "./components/apitsmx/CatalogoView";
 import RecordView from "./components/apitsmx/RecordView";
 import MCPUsersView from "./components/mcp/UsersView";
 import MCPCatalogoView from "./components/mcp/CatalogoView";
-import MCPRecordView from "./components//mcp/RecordView";
+import MCPRecordView from "./components/mcp/RecordView";
 import "./App.css";
 
 type Vista = "inicio" | "usuarios" | "catalogo" | "estadisticas";
