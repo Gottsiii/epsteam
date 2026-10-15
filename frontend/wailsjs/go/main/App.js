@@ -122,10 +122,6 @@ export function MCPListarInteracciones(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['MCPListarInteracciones'](arg1, arg2, arg3, arg4);
 }
 
-export function MCPListarUsuarios() {
-  return window['go']['main']['App']['MCPListarUsuarios']();
-}
-
 export function MCPListarUsuariosActivos() {
   return window['go']['main']['App']['MCPListarUsuariosActivos']();
 }
