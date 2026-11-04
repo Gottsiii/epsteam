@@ -442,3 +442,45 @@ func (a *App) MCPDarDeAltaUsuario(idUser int) error {
 	logger.Registrar("MCP_ALTA_USUARIO", fmt.Sprintf("idUser=%d", idUser))
 	return nil
 }
+
+func (a *App) MCPCrearModulo(nombre string) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+	return db.MCPCreateModulo(a.mcpConn, nombre)
+}
+
+func (a *App) MCPModificarModulo(idMCP int, nombre string) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+	return db.MCPUpdateModulo(a.mcpConn, idMCP, nombre)
+}
+
+func (a *App) MCPEliminarModulo(idMCP int) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+	return db.MCPDeleteModulo(a.mcpConn, idMCP)
+}
+
+func (a *App) MCPCrearFuncion(idMCP int, nombre string) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+	return db.MCPCreateFuncion(a.mcpConn, idMCP, nombre)
+}
+
+func (a *App) MCPModificarFuncion(idFunct, idMCP int, nombre string) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+	return db.MCPUpdateFuncion(a.mcpConn, idFunct, idMCP, nombre)
+}
+
+func (a *App) MCPEliminarFuncion(idFunct int) error {
+	if err := a.checkMCP(); err != nil {
+		return err
+	}
+	return db.MCPDeleteFuncion(a.mcpConn, idFunct)
+}

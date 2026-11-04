@@ -90,6 +90,14 @@ export function MCPBuscarUsuarios(arg1) {
   return window['go']['main']['App']['MCPBuscarUsuarios'](arg1);
 }
 
+export function MCPCrearFuncion(arg1, arg2) {
+  return window['go']['main']['App']['MCPCrearFuncion'](arg1, arg2);
+}
+
+export function MCPCrearModulo(arg1) {
+  return window['go']['main']['App']['MCPCrearModulo'](arg1);
+}
+
 export function MCPCrearUsuario(arg1) {
   return window['go']['main']['App']['MCPCrearUsuario'](arg1);
 }
@@ -100,6 +108,14 @@ export function MCPDarDeAltaUsuario(arg1) {
 
 export function MCPDarDeBajaUsuario(arg1) {
   return window['go']['main']['App']['MCPDarDeBajaUsuario'](arg1);
+}
+
+export function MCPEliminarFuncion(arg1) {
+  return window['go']['main']['App']['MCPEliminarFuncion'](arg1);
+}
+
+export function MCPEliminarModulo(arg1) {
+  return window['go']['main']['App']['MCPEliminarModulo'](arg1);
 }
 
 export function MCPGuardarUsuario(arg1) {
@@ -128,6 +144,14 @@ export function MCPListarUsuariosActivos() {
 
 export function MCPListarUsuariosBaja() {
   return window['go']['main']['App']['MCPListarUsuariosBaja']();
+}
+
+export function MCPModificarFuncion(arg1, arg2, arg3) {
+  return window['go']['main']['App']['MCPModificarFuncion'](arg1, arg2, arg3);
+}
+
+export function MCPModificarModulo(arg1, arg2) {
+  return window['go']['main']['App']['MCPModificarModulo'](arg1, arg2);
 }
 
 export function ModificarFuncion(arg1, arg2, arg3) {

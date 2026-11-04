@@ -2,12 +2,17 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
+	"strings"
 
 	"epsteam/internal/models"
 )
 
-// ListMCPCatalog devuelve el árbol mcp -> función (para la vista de
-// catálogo de MCPs, análogo a módulos y funciones de la API).
+// ============================
+// LECTURA CATÁLOGO / STATS MCP
+// ============================
+
+// ListMCPCatalog devuelve el árbol mcp -> función (solo activos).
 func ListMCPCatalog(conn *sql.DB) ([]models.MCPCatalogItem, error) {
 	rows, err := conn.Query(`
 		SELECT
@@ -16,7 +21,10 @@ func ListMCPCatalog(conn *sql.DB) ([]models.MCPCatalogItem, error) {
 			f.idFunct,
 			f.name AS funcion
 		FROM mcp m
-		LEFT JOIN funct f ON f.idMCP = m.idMCP
+		LEFT JOIN funct f
+			ON f.idMCP = m.idMCP
+			AND f.active = 1
+		WHERE m.active = 1
 		ORDER BY m.name, f.name`)
 	if err != nil {
 		return nil, err
@@ -43,9 +51,8 @@ func ListMCPCatalog(conn *sql.DB) ([]models.MCPCatalogItem, error) {
 	return lista, rows.Err()
 }
 
-// ListMCPUserStats resume el total de interacciones y la última actividad
-// real (MAX(interaction.date)) por usuario, sin límite de mes — la base MCP
-// es reciente, así que se toma histórico completo.
+// ListMCPUserStats resume interacciones y última actividad por usuario.
+// Es histórico, por eso no filtra por active.
 func ListMCPUserStats(conn *sql.DB) ([]models.MCPUserStat, error) {
 	rows, err := conn.Query(`
 		SELECT
@@ -73,8 +80,9 @@ func ListMCPUserStats(conn *sql.DB) ([]models.MCPUserStat, error) {
 	return lista, rows.Err()
 }
 
-// ListMCPFunctionsByUser devuelve las funciones usadas por un usuario, con
-// su conteo de interacciones, ordenadas de mayor a menor uso.
+// ListMCPFunctionsByUser devuelve las funciones usadas por un usuario.
+// No filtra por active a propósito: una función dada de baja debe seguir
+// apareciendo en el historial de uso.
 func ListMCPFunctionsByUser(conn *sql.DB, idUser int) ([]models.MCPFunctionUsage, error) {
 	rows, err := conn.Query(`
 		SELECT
@@ -144,4 +152,160 @@ func GetMCPInteractionsByUserAndFunction(conn *sql.DB, idUser, idFunct, pagina, 
 		return models.MCPInteractionPage{}, err
 	}
 	return models.MCPInteractionPage{Rows: lista, Total: total}, nil
+}
+
+// ============================
+// CRUD CATÁLOGO MCP (baja lógica con active)
+// ============================
+
+func MCPCreateModulo(conn *sql.DB, nombre string) error {
+	nombre = strings.TrimSpace(nombre)
+	if nombre == "" {
+		return fmt.Errorf("nombre requerido")
+	}
+
+	// ¿Ya existe activo?
+	var idActivo int
+	err := conn.QueryRow(`
+		SELECT idMCP
+		FROM mcp
+		WHERE LOWER(name) = LOWER(?) AND active = 1
+		LIMIT 1`, nombre).Scan(&idActivo)
+
+	if err == nil {
+		return fmt.Errorf("ya existe un módulo activo con ese nombre")
+	}
+	// Eliminamos 'err != nil &&' porque aquí ya sabemos que err nunca es nil
+	if err != sql.ErrNoRows {
+		return err
+	}
+
+	// ¿Existe inactivo? -> reactivar
+	var idInactivo int
+	err = conn.QueryRow(`
+		SELECT idMCP
+		FROM mcp
+		WHERE LOWER(name) = LOWER(?) AND active = 0
+		LIMIT 1`, nombre).Scan(&idInactivo)
+
+	if err == nil {
+		_, err = conn.Exec(`UPDATE mcp SET active = 1 WHERE idMCP = ?`, idInactivo)
+		return err
+	}
+	// Eliminamos 'err != nil &&' también aquí
+	if err != sql.ErrNoRows {
+		return err
+	}
+
+	// Crear nuevo
+	_, err = conn.Exec(`INSERT INTO mcp (name, active) VALUES (?, 1)`, nombre)
+	return err
+}
+
+
+func MCPUpdateModulo(conn *sql.DB, idMCP int, nombre string) error {
+	nombre = strings.TrimSpace(nombre)
+	if idMCP <= 0 {
+		return fmt.Errorf("idMCP inválido")
+	}
+	if nombre == "" {
+		return fmt.Errorf("nombre requerido")
+	}
+	_, err := conn.Exec(`UPDATE mcp SET name = ? WHERE idMCP = ? AND active = 1`, nombre, idMCP)
+	return err
+}
+
+// MCPDeleteModulo da de baja el módulo y sus funciones en una transacción.
+func MCPDeleteModulo(conn *sql.DB, idMCP int) error {
+	if idMCP <= 0 {
+		return fmt.Errorf("idMCP inválido")
+	}
+
+	tx, err := conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(`UPDATE funct SET active = 0 WHERE idMCP = ?`, idMCP); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`UPDATE mcp SET active = 0 WHERE idMCP = ?`, idMCP); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func MCPCreateFuncion(conn *sql.DB, idMCP int, nombre string) error {
+	nombre = strings.TrimSpace(nombre)
+	if idMCP <= 0 {
+		return fmt.Errorf("idMCP inválido")
+	}
+	if nombre == "" {
+		return fmt.Errorf("nombre requerido")
+	}
+
+	// ¿Existe activa en ese módulo?
+	var idActiva int
+	err := conn.QueryRow(`
+		SELECT idFunct
+		FROM funct
+		WHERE idMCP = ? AND LOWER(name) = LOWER(?) AND active = 1
+		LIMIT 1`, idMCP, nombre).Scan(&idActiva)
+
+	if err == nil {
+		return fmt.Errorf("ya existe una función activa con ese nombre en este módulo")
+	}
+	// Ya sabemos que err != nil, solo filtramos si es un error real de la base de datos
+	if err != sql.ErrNoRows {
+		return err
+	}
+
+	// ¿Existe inactiva en ese módulo? -> reactivar
+	var idInactiva int
+	err = conn.QueryRow(`
+		SELECT idFunct
+		FROM funct
+		WHERE idMCP = ? AND LOWER(name) = LOWER(?) AND active = 0
+		LIMIT 1`, idMCP, nombre).Scan(&idInactiva)
+
+	if err == nil {
+		_, err = conn.Exec(`UPDATE funct SET active = 1 WHERE idFunct = ?`, idInactiva)
+		return err
+	}
+	// Quitamos la redundancia también aquí
+	if err != sql.ErrNoRows {
+		return err
+	}
+
+	// Crear nueva
+	_, err = conn.Exec(`INSERT INTO funct (idMCP, name, active) VALUES (?, ?, 1)`, idMCP, nombre)
+	return err
+}
+
+
+func MCPUpdateFuncion(conn *sql.DB, idFunct, idMCP int, nombre string) error {
+	nombre = strings.TrimSpace(nombre)
+	if idFunct <= 0 {
+		return fmt.Errorf("idFunct inválido")
+	}
+	if idMCP <= 0 {
+		return fmt.Errorf("idMCP inválido")
+	}
+	if nombre == "" {
+		return fmt.Errorf("nombre requerido")
+	}
+	_, err := conn.Exec(
+		`UPDATE funct SET idMCP = ?, name = ? WHERE idFunct = ? AND active = 1`,
+		idMCP, nombre, idFunct,
+	)
+	return err
+}
+
+func MCPDeleteFuncion(conn *sql.DB, idFunct int) error {
+	if idFunct <= 0 {
+		return fmt.Errorf("idFunct inválido")
+	}
+	_, err := conn.Exec(`UPDATE funct SET active = 0 WHERE idFunct = ?`, idFunct)
+	return err
 }

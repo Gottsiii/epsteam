@@ -47,11 +47,19 @@ export function ListarUsuariosBaja():Promise<Array<models.User>>;
 
 export function MCPBuscarUsuarios(arg1:string):Promise<Array<models.MCPUser>>;
 
+export function MCPCrearFuncion(arg1:number,arg2:string):Promise<void>;
+
+export function MCPCrearModulo(arg1:string):Promise<void>;
+
 export function MCPCrearUsuario(arg1:main.MCPCrearUsuarioInput):Promise<models.MCPUser>;
 
 export function MCPDarDeAltaUsuario(arg1:number):Promise<void>;
 
 export function MCPDarDeBajaUsuario(arg1:main.MCPBajaUsuarioInput):Promise<void>;
+
+export function MCPEliminarFuncion(arg1:number):Promise<void>;
+
+export function MCPEliminarModulo(arg1:number):Promise<void>;
 
 export function MCPGuardarUsuario(arg1:main.MCPGuardarUsuarioInput):Promise<void>;
 
@@ -66,6 +74,10 @@ export function MCPListarInteracciones(arg1:number,arg2:number,arg3:number,arg4:
 export function MCPListarUsuariosActivos():Promise<Array<models.MCPUser>>;
 
 export function MCPListarUsuariosBaja():Promise<Array<models.MCPUser>>;
+
+export function MCPModificarFuncion(arg1:number,arg2:number,arg3:string):Promise<void>;
+
+export function MCPModificarModulo(arg1:number,arg2:string):Promise<void>;
 
 export function ModificarFuncion(arg1:number,arg2:number,arg3:string):Promise<void>;
 

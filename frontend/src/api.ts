@@ -168,6 +168,29 @@ export const mcpDarDeAltaUsuario = (idUser: number) =>
 
 // ==== MCP: catálogo y estadísticas ====
 
+
+export const mcpCrearModulo = (nombre: string) =>
+  Backend.MCPCrearModulo(nombre) as unknown as Promise<void>;
+
+export const mcpModificarModulo = (idMCP: number, nombre: string) =>
+  Backend.MCPModificarModulo(idMCP, nombre) as unknown as Promise<void>;
+
+export const mcpEliminarModulo = (idMCP: number) =>
+  Backend.MCPEliminarModulo(idMCP) as unknown as Promise<void>;
+
+export const mcpCrearFuncion = (idMCP: number, nombre: string) =>
+  Backend.MCPCrearFuncion(idMCP, nombre) as unknown as Promise<void>;
+
+export const mcpModificarFuncion = (
+  idFunct: number,
+  idMCP: number,
+  nombre: string
+) =>
+  Backend.MCPModificarFuncion(idFunct, idMCP, nombre) as unknown as Promise<void>;
+
+export const mcpEliminarFuncion = (idFunct: number) =>
+  Backend.MCPEliminarFuncion(idFunct) as unknown as Promise<void>;
+
 export const mcpListarCatalogo = async (): Promise<MCPCatalogItem[]> =>
   ensureArrayResponse<MCPCatalogItem>(
     await Backend.MCPListarCatalogo(),
