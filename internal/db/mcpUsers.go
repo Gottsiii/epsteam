@@ -157,8 +157,14 @@ func MCPCreateUser(conn *sql.DB, email, comment string) (models.MCPUser, error) 
 	return u, nil
 }
 
-// MCPSaveUser actualiza email/comment y refresca lastUpdate.
-func MCPSaveUser(conn *sql.DB, idUser int, email, comment string) error {
+// MCPSaveUser actualiza los datos y sincroniza los permisos recibidos.
+// Si permisos es nil, conserva los permisos existentes.
+func MCPSaveUser(
+	conn *sql.DB,
+	idUser int,
+	email, comment string,
+	permisos []models.PermisoInput,
+) error {
 	email = strings.TrimSpace(email)
 	comment = strings.TrimSpace(comment)
 
@@ -169,13 +175,72 @@ func MCPSaveUser(conn *sql.DB, idUser int, email, comment string) error {
 		return fmt.Errorf("email requerido")
 	}
 
-	_, err := conn.Exec(`
+	tx, err := conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.Exec(`
 		UPDATE users
 		SET email = ?, comment = ?, lastUpdate = NOW()
 		WHERE idUser = ?`,
 		email, comment, idUser,
-	)
-	return err
+	); err != nil {
+		return err
+	}
+
+	if permisos != nil {
+		actuales := make(map[int]bool)
+
+		rows, err := tx.Query(
+			`SELECT idFunct FROM access WHERE idUser = ?`,
+			idUser,
+		)
+		if err != nil {
+			return err
+		}
+
+		for rows.Next() {
+			var idFunct int
+			if err := rows.Scan(&idFunct); err != nil {
+				rows.Close()
+				return err
+			}
+			actuales[idFunct] = true
+		}
+		if err := rows.Err(); err != nil {
+			rows.Close()
+			return err
+		}
+		if err := rows.Close(); err != nil {
+			return err
+		}
+
+		for _, permiso := range permisos {
+			existe := actuales[permiso.IDFunct]
+
+			switch {
+			case permiso.Autorizada && !existe:
+				if _, err := tx.Exec(
+					`INSERT INTO access (idUser, idFunct) VALUES (?, ?)`,
+					idUser, permiso.IDFunct,
+				); err != nil {
+					return err
+				}
+
+			case !permiso.Autorizada && existe:
+				if _, err := tx.Exec(
+					`DELETE FROM access WHERE idUser = ? AND idFunct = ?`,
+					idUser, permiso.IDFunct,
+				); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return tx.Commit()
 }
 
 // MCPDeactivateUser aplica baja lógica textual:
@@ -191,7 +256,10 @@ func MCPDeactivateUser(conn *sql.DB, idUser int, sctask, motivo string) error {
 	}
 
 	var current sql.NullString
-	if err := conn.QueryRow(`SELECT comment FROM users WHERE idUser = ?`, idUser).Scan(&current); err != nil {
+	if err := conn.QueryRow(
+		`SELECT comment FROM users WHERE idUser = ?`,
+		idUser,
+	).Scan(&current); err != nil {
 		if err == sql.ErrNoRows {
 			return fmt.Errorf("usuario %d no encontrado", idUser)
 		}
@@ -202,8 +270,10 @@ func MCPDeactivateUser(conn *sql.DB, idUser int, sctask, motivo string) error {
 	marker := fmt.Sprintf("%s %s", bajaMarker, sctask)
 
 	if strings.Contains(comment, bajaMarker) {
-		// ya está dado de baja; opcionalmente actualizamos lastUpdate
-		_, err := conn.Exec(`UPDATE users SET lastUpdate = NOW() WHERE idUser = ?`, idUser)
+		_, err := conn.Exec(
+			`UPDATE users SET lastUpdate = NOW() WHERE idUser = ?`,
+			idUser,
+		)
 		return err
 	}
 
@@ -235,7 +305,10 @@ func MCPReactivateUser(conn *sql.DB, idUser int) error {
 	}
 
 	var current sql.NullString
-	if err := conn.QueryRow(`SELECT comment FROM users WHERE idUser = ?`, idUser).Scan(&current); err != nil {
+	if err := conn.QueryRow(
+		`SELECT comment FROM users WHERE idUser = ?`,
+		idUser,
+	).Scan(&current); err != nil {
 		if err == sql.ErrNoRows {
 			return fmt.Errorf("usuario %d no encontrado", idUser)
 		}
@@ -244,11 +317,13 @@ func MCPReactivateUser(conn *sql.DB, idUser int) error {
 
 	comment := strings.TrimSpace(current.String)
 	if comment == "" {
-		_, err := conn.Exec(`UPDATE users SET lastUpdate = NOW() WHERE idUser = ?`, idUser)
+		_, err := conn.Exec(
+			`UPDATE users SET lastUpdate = NOW() WHERE idUser = ?`,
+			idUser,
+		)
 		return err
 	}
 
-	// Quita desde el marker hasta el final del string.
 	if idx := strings.Index(comment, bajaMarker); idx >= 0 {
 		comment = strings.TrimSpace(comment[:idx])
 	}

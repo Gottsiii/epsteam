@@ -138,6 +138,10 @@ export function MCPListarInteracciones(arg1, arg2, arg3, arg4) {
   return window['go']['main']['App']['MCPListarInteracciones'](arg1, arg2, arg3, arg4);
 }
 
+export function MCPListarPermisosUsuario(arg1) {
+  return window['go']['main']['App']['MCPListarPermisosUsuario'](arg1);
+}
+
 export function MCPListarUsuariosActivos() {
   return window['go']['main']['App']['MCPListarUsuariosActivos']();
 }

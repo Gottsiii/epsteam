@@ -18,6 +18,15 @@ type MCPCatalogItem struct {
 	Funcion string `json:"funcion,omitempty"`
 }
 
+// MCPFuncionPermiso es una función MCP junto con si el usuario consultado
+// la tiene autorizada (existe fila en la tabla `access`).
+type MCPFuncionPermiso struct {
+	IDFunct    int    `json:"id_funct"`
+	MCP        string `json:"mcp"`
+	Funcion    string `json:"funcion"`
+	Autorizada bool   `json:"autorizada"`
+}
+
 // MCPUserStat resume interacciones por usuario en la base MCP.
 type MCPUserStat struct {
 	IDUser             int    `json:"id_user"`
@@ -47,3 +56,4 @@ type MCPInteractionPage struct {
 	Rows  []MCPInteractionRow `json:"rows"`
 	Total int                 `json:"total"`
 }
+

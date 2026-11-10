@@ -71,6 +71,8 @@ export function MCPListarFuncionesPorUsuario(arg1:number):Promise<Array<models.M
 
 export function MCPListarInteracciones(arg1:number,arg2:number,arg3:number,arg4:number):Promise<models.MCPInteractionPage>;
 
+export function MCPListarPermisosUsuario(arg1:number):Promise<Array<models.MCPFuncionPermiso>>;
+
 export function MCPListarUsuariosActivos():Promise<Array<models.MCPUser>>;
 
 export function MCPListarUsuariosBaja():Promise<Array<models.MCPUser>>;

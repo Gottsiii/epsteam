@@ -348,9 +348,10 @@ type MCPBajaUsuarioInput struct {
 
 // MCPGuardarUsuarioInput permite edición simple de users MCP.
 type MCPGuardarUsuarioInput struct {
-	IDUser  int    `json:"id_user"`
-	Email   string `json:"email"`
-	Comment string `json:"comment"`
+	IDUser   int                   `json:"id_user"`
+	Email    string                `json:"email"`
+	Comment  string                `json:"comment"`
+	Permisos []models.PermisoInput `json:"permisos"`
 }
 
 // MCPListarUsuariosActivos lista users que NO tienen la marca de baja
@@ -379,6 +380,13 @@ func (a *App) MCPBuscarUsuarios(texto string) ([]models.MCPUser, error) {
 	return db.MCPSearchUsers(a.mcpConn, texto)
 }
 
+func (a *App) MCPListarPermisosUsuario(idUser int) ([]models.MCPFuncionPermiso, error) {
+	if err := a.checkMCP(); err != nil {
+		return nil, err
+	}
+	return db.ListMCPPermissionsByUser(a.mcpConn, idUser)
+}
+
 // MCPCrearUsuario crea un user básico MCP.
 func (a *App) MCPCrearUsuario(input MCPCrearUsuarioInput) (models.MCPUser, error) {
 	if err := a.checkMCP(); err != nil {
@@ -400,7 +408,7 @@ func (a *App) MCPGuardarUsuario(input MCPGuardarUsuarioInput) error {
 		return err
 	}
 
-	if err := db.MCPSaveUser(a.mcpConn, input.IDUser, input.Email, input.Comment); err != nil {
+	if err := db.MCPSaveUser(a.mcpConn, input.IDUser, input.Email, input.Comment, input.Permisos); err != nil {
 		return err
 	}
 

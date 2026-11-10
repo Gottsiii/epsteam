@@ -126,10 +126,11 @@ export default function UsersView() {
           }}
         />
       )}
+
       {mostrarNuevo && (
         <NewUserModal
           onClose={() => setMostrarNuevo(false)}
-          onCreado={() =>{
+          onCreado={() => {
             setMostrarNuevo(false);
             cargar();
           }}
