@@ -6,12 +6,14 @@ import {
   mcpBuscarUsuarios,
 } from "../../api";
 import UserEditDrawer from "./UserEditDrawer";
+import NewUserModal from "./NewUserModal";
 
 export default function UsersView() {
   const [usuarios, setUsuarios] = useState<MCPUser[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [verBajas, setVerBajas] = useState(false);
   const [seleccionado, setSeleccionado] = useState<MCPUser | null>(null);
+  const [mostrarNuevo, setMostrarNuevo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
   const reqSeq = useRef(0);
@@ -77,6 +79,9 @@ export default function UsersView() {
             />
             Ver dados de baja
           </label>
+          <button className="primary" onClick={() => setMostrarNuevo(true)}>
+            + Nuevo usuario
+          </button>
         </div>
       </header>
 
@@ -117,6 +122,15 @@ export default function UsersView() {
           onClose={() => setSeleccionado(null)}
           onGuardado={() => {
             setSeleccionado(null);
+            cargar();
+          }}
+        />
+      )}
+      {mostrarNuevo && (
+        <NewUserModal
+          onClose={() => setMostrarNuevo(false)}
+          onCreado={() =>{
+            setMostrarNuevo(false);
             cargar();
           }}
         />

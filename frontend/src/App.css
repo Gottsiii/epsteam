@@ -159,6 +159,7 @@ select {
 }
 
 input[type="text"],
+input[type="email"],
 input:not([type]),
 select {
   background: var(--panel-2);
